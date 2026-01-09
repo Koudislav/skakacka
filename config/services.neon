@@ -1,6 +1,9 @@
 services:
 	- App\Core\RouterFactory::createRouter
 
+	authenticator: App\Model\UserAuthenticator
+
+	- App\Model\LessCompiler(%appDir%/../assets/less, %tempDir%/less, %wwwDir%/assets/css, %wwwDir%)
 
 search:
 	-	in: %appDir%

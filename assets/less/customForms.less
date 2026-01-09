@@ -1,0 +1,48 @@
+.form-max-400, .form-max-500 {
+	.row .col-12 {
+		&:has(.form-group>select[hidden]) {
+			display: none;
+		}
+	}
+}
+
+.form-max-400 {
+	.row .col-12 {
+		.form-group {
+			&:has(input:not([type="radio"])),
+			&:has(select),
+			&:has(textarea) {
+				@media only screen and (min-width: @break-min-sm) {
+					max-width: 400px;
+				}
+			}
+		}
+	}
+}
+
+.form-max-500 {
+	.row .col-12 {
+		.form-group {
+			&:has(input:not([type="radio"])),
+			&:has(select),
+			&:has(textarea) {
+				@media only screen and (min-width: @break-min-sm) {
+					max-width: 500px;
+				}
+			}
+		}
+	}
+}
+
+.no-label {
+	&:has(.input-no-label) {
+		label {
+			display: none;
+		}
+	}
+	&:has(.form-check) {
+		>label {
+			display: none;
+		}
+	}
+}

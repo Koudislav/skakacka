@@ -1,0 +1,22 @@
+{block adminPanel}
+<div class="container-fluid">
+	<span class="float-end">
+		{if !$user->isLoggedIn()}
+			Nepřihlášný
+		{else}
+			{$user->getIdentity()->email}
+			|
+			<a class="text-decoration-none" href="{link Logout!}"><i class="bi bi-box-arrow-right" title="Logout"></i> Odhlásit se</a>
+		{/if}
+	</span>
+</div>
+{/block}
+
+
+{block content}
+{if !$user->isLoggedIn()}
+	<h1 n:block=title>Přihlášení do administrace</h1>
+	{control loginForm}
+{else}
+	Prihlasen
+{/if}
