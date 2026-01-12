@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="cs">
-{include '@head.latte'}
+{include '../@head.latte'}
 
 <body class="d-flex flex-column min-vh-100">
 	{snippet flashes}
@@ -12,12 +12,12 @@
 		</div>
 	{/snippet}
 
-	{include '@navbar.latte'}
+	{include '@adminPanel.latte'}
 
 	<div class="container flex-grow-1 pt-2">
 		{include content}
 	</div>
 
-	{include '@bodyScripts.latte'}
+	{include '../@bodyScripts.latte'}
 </body>
 </html>
