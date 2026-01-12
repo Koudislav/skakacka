@@ -11,10 +11,11 @@ class LoginFormFactory {
 	public function create(callable $onSuccess): Form {
 		$form = BootstrapFormFactory::create();
 		$form->addText('email', 'Zadejte email:')
-		->setRequired('Zadejte email.');
+			->setRequired('Zadejte email.')
+			->addRule($form::Email, 'Zadejte platnou e-mailovou adresu.');
 
 		$form->addPassword('password', 'Heslo:')
-		->setRequired('Zadejte heslo.');
+			->setRequired('Zadejte heslo.');
 
 		$form->addSubmit('send', 'Přihlásit se')
 			->setHtmlAttribute('class', 'btn btn-primary');

@@ -15,7 +15,16 @@
 	{include '@adminPanel.latte'}
 
 	<div class="container flex-grow-1 pt-2">
-		{include content}
+		<div class="row">
+			<div class="col-3">
+				{block menu}
+					menu neni k dispozici
+				{/block}
+			</div>
+			<div class="col-9">
+				{include content}
+			</div>
+		</div>
 	</div>
 
 	{include '../@bodyScripts.latte'}

@@ -19,9 +19,6 @@ class UserRepository {
 	) {}
 
 	public function authenticate(string $email, string $password): ActiveRow {
-		bdump($this->db->query('SELECT 1'));
-		// bdump($this->passwords->hash($password), 'hashed password for debug');
-		// die;
 		$user = $this->db->table(self::USERS_TABLE)
 			->where('email', $email)
 			->fetch();
@@ -30,11 +27,63 @@ class UserRepository {
 			throw new AuthenticationException('Neplatné uživatelské jméno nebo heslo.');
 		}
 
+		if ($user->is_active !== 1) {
+			throw new AuthenticationException('Uživatel není aktivní.');
+		}
+
 		if ($this->passwords->needsRehash($user->password_hash)) {
 			$user->update(['password_hash' => $this->passwords->hash($password)]);
 		}
 
 		return $user;
+	}
+
+	public function findAll() {
+		return $this->db->table(self::USERS_TABLE);
+	}
+
+	public function getUserById(int $userId): ?ActiveRow {
+		return $this->db->table(self::USERS_TABLE)
+			->get($userId) ?: null;
+	}
+
+	public function verifyPasswordById(int $userId, string $password): bool {
+		$user = $this->getUserById($userId);
+
+		if (!$user) {
+			return false;
+		}
+
+		return $this->passwords->verify($password, $user->password_hash);
+	}
+
+	public function setPassword(int $userId, string $password): void {
+		$user = $this->getUserById($userId);
+
+		if ($user) {
+			$user->update(['password_hash' => $this->passwords->hash($password)]);
+		}
+	}
+
+	public function updateUser(int $userId, \stdClass $values): void {
+		$user = $this->getUserById($userId);
+
+		if ($user) {
+			$user->update([
+				'email' => $values->email,
+				'role' => $values->role,
+				'is_active' => $values->is_active ? 1 : 0,
+			]);
+		}
+	}
+
+	public function createUser(\stdClass $values): void {
+		$this->db->table(self::USERS_TABLE)->insert([
+			'email' => $values->email,
+			'password_hash' => $this->passwords->hash($values->password),
+			'role' => $values->role,
+			'is_active' => $values->is_active ? 1 : 0,
+		]);
 	}
 
 }

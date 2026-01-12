@@ -1,0 +1,20 @@
+{dump}
+{block title}
+Správa uživatelů - {if $currentUserId === 0}Nový uživatel{else}Úprava uživatele{/if}
+{/block}
+{block menu}
+<div class="list-group rounded shadow-sm">
+	<a n:href="Administration:users, userId: 0"
+			n:class="$currentUserId === 0 ? active, 'list-group-item list-group-item-action'">
+		<i class="bi bi-person-add"></i> Nový uživatel
+	</a>
+	{foreach $users as $u}
+		<a n:href="Administration:users, userId: $u->id"
+				n:class="$currentUserId === $u->id ? active, 'list-group-item list-group-item-action'">
+			{$u->email}
+		</a>
+	{/foreach}
+</div>
+{/block}
+{block content}
+	{control userForm}
