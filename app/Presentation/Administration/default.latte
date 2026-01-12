@@ -1,7 +1,16 @@
+{block menu}
+<div class="list-group rounded shadow-sm">
+	{foreach $menu as $m}
+		<a n:href="$m['action']" class="list-group-item list-group-item-action">
+			<i class="{$m['icon']}"></i> {$m['title']}
+		</a>
+	{/foreach}
+</div>
+{/block}
 {block content}
 {if !$user->isLoggedIn()}
 	<h1 n:block=title>Přihlášení do administrace</h1>
 	{control loginForm}
 {else}
-	Prihlasen
+	Jste přihlášen jako <b>{$user->getIdentity()->email}</b>.
 {/if}

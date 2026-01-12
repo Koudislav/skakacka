@@ -69,11 +69,14 @@ class UserRepository {
 		$user = $this->getUserById($userId);
 
 		if ($user) {
-			$user->update([
-				'email' => $values->email,
-				'role' => $values->role,
-				'is_active' => $values->is_active ? 1 : 0,
-			]);
+			$data = ['email' => $values->email];
+			if (isset($values->role)) {
+				$data['role'] = $values->role;
+			}
+			if (isset($values->is_active)) {
+				$data['is_active'] = $values->is_active ? 1 : 0;
+			}
+			$user->update($data);
 		}
 	}
 

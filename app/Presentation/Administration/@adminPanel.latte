@@ -1,12 +1,8 @@
 <div class="container-fluid d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
 	<div class="admin-actions d-flex align-items-center g">
-		{if $user->isInRole('superadmin')}
-			<a class="text-decoration-none me-3" n:href="Administration:Users"><i class="bi bi-people-fill" title="User Management"></i> Správa uživatelů</a>
-		{/if}
-
-		{if $user->isLoggedIn()}
-			prihlasen
-		{/if}
+		{foreach $menu as $m}
+			<a class="text-decoration-none me-3" n:href="$m['action']"><i class="{$m['icon']}" title="{$m['title']}"></i> {$m['title']}</a>
+		{/foreach}
 	</div>
 
 	<span>

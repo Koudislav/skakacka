@@ -6,6 +6,7 @@ namespace App\Presentation;
 
 use Nette;
 use App\Model\LessCompiler;
+use Nette\Application\UI\Form;
 
 class BasePresenter extends Nette\Application\UI\Presenter {
 
@@ -18,4 +19,9 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		$this->template->cssFile = $cssFile['final'];
 	}
 
+	public function disableForm(Form $form): void{
+		foreach ($form->getControls() as $control) {
+			$control->setDisabled();
+		}
+	}
 }

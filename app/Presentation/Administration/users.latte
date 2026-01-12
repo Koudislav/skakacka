@@ -1,15 +1,13 @@
-{dump}
-{block title}
-Správa uživatelů - {if $currentUserId === 0}Nový uživatel{else}Úprava uživatele{/if}
-{/block}
 {block menu}
 <div class="list-group rounded shadow-sm">
-	<a n:href="Administration:users, userId: 0"
+	<a n:if="$user->isInRole('superadmin')"
+			n:href="Administration:users, userId: 0"
 			n:class="$currentUserId === 0 ? active, 'list-group-item list-group-item-action'">
 		<i class="bi bi-person-add"></i> Nový uživatel
 	</a>
 	{foreach $users as $u}
-		<a n:href="Administration:users, userId: $u->id"
+		<a n:if="$user->isInRole('superadmin') || ($user->isInRole('admin') && $user->getId() === $u->id)"
+				n:href="Administration:users, userId: $u->id"
 				n:class="$currentUserId === $u->id ? active, 'list-group-item list-group-item-action'">
 			{$u->email}
 		</a>
@@ -17,4 +15,8 @@ Správa uživatelů - {if $currentUserId === 0}Nový uživatel{else}Úprava uži
 </div>
 {/block}
 {block content}
+	<h1 class="h3" n:block=title>
+		Správa uživatelů - {if $currentUserId === 0}Nový uživatel{else}Úprava uživatele {$users[$currentUserId]->email}{/if}
+	</h1>
+	<hr>
 	{control userForm}

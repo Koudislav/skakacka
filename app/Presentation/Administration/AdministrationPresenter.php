@@ -18,11 +18,31 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	/** @var UserRepository @inject */
 	public $userRepository;
 
+	public const MENU = [
+		[
+			'action' => 'Administration:Users',
+			'icon' => 'bi bi-people-fill',
+			'title' => 'Správa uživatelů',
+			// 'accessRoles' => ['admin', 'superadmin'],
+			'onlyForLoggedIn' => true,
+		],
+	];
+
+	public function beforeRender() {
+		$this->template->menu = $this->processMenu();
+	}
+
 	public function actionUsers(int $userId = 0): void {
-		bdump($userId, 'userId');
-		if (!$this->user->isInRole('superadmin')) {
+		if (!($this->user->isInRole('superadmin') || $this->user->isInRole('admin'))) {
 			$this->flashMessage('Nemáte oprávnění pro přístup na tuto stránku.', 'danger');
 			$this->redirect('Administration:default');
+		}
+		if (!$this->user->isInRole('superadmin') && $this->user->getId() !== $userId && $userId !== 0) {
+			$this->flashMessage('Nemáte oprávnění upravovat jiného uživatele.', 'danger');
+			$this->redirect('Administration:Users');
+		}
+		if (!$this->user->isInRole('superadmin') && $userId === 0) {
+			$this->redirect('Administration:Users', ['userId' => $this->user->getId()]);
 		}
 	}
 
@@ -30,9 +50,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->template->currentUserId = $userId;
 		$users = $this->userRepository->findAll();
 		$this->template->users = $users;
-		if ($userId !== 0) {
-			$this->template->selectedUser = $users->get($userId);
-		}
 	}
 	
 	//components
@@ -60,28 +77,48 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$password = $form->addPassword('password', 'Zadejte nové heslo:');
 		$passwordConfirm = $form->addPassword('passwordConfirm', 'Zadejte nové heslo pro kontrolu:');
 
-		if ($userId === 0) {
-			$password->setRequired('Zadejte heslo uživatele.');
-			$passwordConfirm->setRequired('Zadejte heslo uživatele pro kontrolu.');
-		}
-
 		$passwordConfirm->addRule(
 			$form::Equal,
 			'Hesla se neshodují.',
 			$password
 		);
 
-		$form->addSelect('role', 'Vyberte roli:', [
+		$role = $form->addSelect('role', 'Vyberte roli:', [
 			'admin' => 'Administrátor',
 			'superadmin' => 'Superadministrátor'
 			])
 			->setDefaultValue('admin')
 			->setRequired('Vyberte roli.');
 
-		$form->addCheckbox('is_active', 'Aktivní')
+		if (!$isSuperAdmin) {
+			$role->setDisabled();
+		}
+
+		$active = $form->addCheckbox('is_active', 'Aktivní')
 			->setDefaultValue(true);
 
+		if ($isSelfEdit) {
+			$active->setDisabled();
+		}
+
 		$form->addSubmit('submit', 'Uložit');
+
+		if ($userId !== 0) {
+			$userData = $this->userRepository->getUserById($userId);
+			$form->setDefaults([
+				'email' => $userData->email,
+				'role' => $userData->role,
+				'is_active' => $userData->is_active == 1,
+			]);
+		}
+
+		if ($userId === 0) {
+			$password->setRequired('Zadejte heslo uživatele.');
+			$passwordConfirm->setRequired('Zadejte heslo uživatele pro kontrolu.');
+			if (!$this->user->isInRole('superadmin')) {
+				$this->disableForm($form);
+			}
+		}
 
 		$form->onSuccess[] = [$this, 'userFormSubmitted'];
 
@@ -90,6 +127,10 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	//Form manipulation
 	public function userFormSubmitted(Form $form, $values): void {
+		if (!$this->user->isLoggedIn()) {
+			$form->addError('Pro tuto akci musíte být přihlášeni.');
+			return;
+		}
 		$userId = (int) $this->getParameter('userId');
 		$loggedUserId = (int) $this->getUser()->getId();
 		$isSelfEdit = $userId !== 0 && $userId === $loggedUserId;
@@ -147,6 +188,33 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public function handleLogout(): void {
 		$this->user->logout(true);
 		$this->redirect('Administration:default');
+	}
+
+	//helpers
+	public function processMenu(): array {
+		$menu = self::MENU;
+		foreach ($menu as $key => $m) {
+			if (isset($m['accessRoles'])) {
+				$hasAccess = false;
+				foreach ($m['accessRoles'] as $role) {
+					if ($this->user->isInRole($role)) {
+						$hasAccess = true;
+						break;
+					}
+				}
+				if (!$hasAccess) {
+					unset($menu[$key]);
+					continue;
+				}
+			}
+			if (isset($m['onlyForLoggedIn']) && $m['onlyForLoggedIn'] === true) {
+				if (!$this->user->isLoggedIn()) {
+					unset($menu[$key]);
+					continue;
+				}
+			}
+		}
+		return $menu;
 	}
 
 }
