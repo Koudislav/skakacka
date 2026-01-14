@@ -1,9 +1,15 @@
-26.01.09 7:30 - 8:00 - zalozeni repository, inicializace aplikace
-26.01.09 8:00 - 8:30 - navrh db
-26.01.09 8:30 - 9:30 - zakladni graficke prvky formularu, inicializace less compilatoru, tvorba login formu pro prihlaseni k administraci
-26.01.09 9:30 - 10:00 - zakladni DB komunikace, prihlaseni administratora, prace s hesly
+26.01.09 07:30 - 08:00 - zalozeni repository, inicializace aplikace
+26.01.09 08:00 - 08:30 - navrh db
+26.01.09 08:30 - 09:30 - zakladni graficke prvky formularu, inicializace less compilatoru, tvorba login formu pro prihlaseni k administraci
+26.01.09 09:30 - 10:00 - zakladni DB komunikace, prihlaseni administratora, prace s hesly
 
 
-26.01.12 9:00 - 9:30 - vytvoreni layoutovych struktur pro administraci.
-26.01.12 9:30 - 10:30 - tvorba CRUD pro spravu uzivatelu
+26.01.12 09:00 - 09:30 - vytvoreni layoutovych struktur pro administraci.
+26.01.12 09:30 - 10:30 - tvorba CRUD pro spravu uzivatelu
 26.01.12 11:00 - 12:00 - správa uživatelů - logika a bezpečnost
+26.01.12 17:00 - 17:30 - ukladani historie clanku, DB trigger
+
+
+26.01.13 09:00 - 09:45 - tvorba CRUD pro spravu clanku
+
+26.01.14 11:45 - 12:15 - správa článků - logika a bezpečnost

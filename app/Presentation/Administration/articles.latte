@@ -1,0 +1,20 @@
+{block menu}
+<div class="list-group rounded shadow-sm">
+	<a n:href="Administration:articles, articleId: 0"
+			n:class="$currentArticleId === 0 ? active, 'list-group-item list-group-item-action'">
+		<i class="bi bi-file-earmark-plus"></i> Nový článek
+	</a>
+	{foreach $articles as $a}
+		<a n:href="Administration:articles, articleId: $a->id"
+				n:class="$currentArticleId === $a->id ? active, 'list-group-item list-group-item-action'">
+			{$a->title}
+		</a>
+	{/foreach}
+</div>
+{/block}
+{block content}
+	<h1 class="h3" n:block=title>
+		Správa článků - {if $currentArticleId === 0}Nový článek{else}Úprava článku {$articles[$currentArticleId]->title}{/if}
+	</h1>
+	<hr>
+	{control articleForm}

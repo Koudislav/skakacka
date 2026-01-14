@@ -6,6 +6,7 @@ namespace App\Presentation\Administration;
 
 use App\Forms\BootstrapFormFactory;
 use App\Forms\LoginFormFactory;
+use App\Repository\ArticleRepository;
 use App\Repository\UserRepository;
 use Nette;
 use Nette\Application\UI\Form;
@@ -14,18 +15,37 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var LoginFormFactory @inject */
 	public $loginFormFactory;
+	
+	/** @var ArticleRepository @inject */
+	public $articleRepository;
 
 	/** @var UserRepository @inject */
 	public $userRepository;
 
 	public const MENU = [
 		[
-			'action' => 'Administration:Users',
+			'action' => 'Administration:users',
 			'icon' => 'bi bi-people-fill',
 			'title' => 'Správa uživatelů',
 			// 'accessRoles' => ['admin', 'superadmin'],
 			'onlyForLoggedIn' => true,
 		],
+		[
+			'action' => 'Administration:articles',
+			'icon' => 'bi bi-file-earmark-text',
+			'title' => 'Články',
+			'onlyForLoggedIn' => true,
+		]
+	];
+
+	public const ARTICLE_TYPES = [
+		'article' => 'Běžný článek',
+		'news' => 'Novinka',
+	];
+
+	public const ROLES = [
+		'admin' => 'Administrátor',
+		'superadmin' => 'Superadministrátor'
 	];
 
 	public function beforeRender() {
@@ -33,7 +53,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	}
 
 	public function actionUsers(int $userId = 0): void {
-		if (!($this->user->isInRole('superadmin') || $this->user->isInRole('admin'))) {
+		if (!$this->user->isLoggedIn()) {
 			$this->flashMessage('Nemáte oprávnění pro přístup na tuto stránku.', 'danger');
 			$this->redirect('Administration:default');
 		}
@@ -50,6 +70,21 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->template->currentUserId = $userId;
 		$users = $this->userRepository->findAll();
 		$this->template->users = $users;
+	}
+
+	public function actionArticles(int $articleId = 0): void {
+		if (!$this->user->isLoggedIn()) {
+			$this->flashMessage('Pro přístup na tuto stránku se musíte přihlásit.', 'danger');
+			$this->redirect('Administration:default');
+		}
+	}
+
+	public function renderArticles(int $articleId = 0): void {
+		$this->template->currentArticleId = $articleId;
+		$articles = $this->articleRepository->findAll();
+		$this->template->articles = $articles;
+		bdump($articles);
+
 	}
 	
 	//components
@@ -83,10 +118,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			$password
 		);
 
-		$role = $form->addSelect('role', 'Vyberte roli:', [
-			'admin' => 'Administrátor',
-			'superadmin' => 'Superadministrátor'
-			])
+		$role = $form->addSelect('role', 'Vyberte roli:', self::ROLES)
 			->setDefaultValue('admin')
 			->setRequired('Vyberte roli.');
 
@@ -121,6 +153,48 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 
 		$form->onSuccess[] = [$this, 'userFormSubmitted'];
+
+		return $form;
+	}
+
+	public function createComponentArticleForm() {
+		$form = BootstrapFormFactory::create('oneLine');
+		$articleId = (int) $this->getParameter('articleId');
+
+		$form->addSelect('type', 'Typ článku:', self::ARTICLE_TYPES)
+			->setDefaultValue('article');
+
+		$form->addText('title', 'Nadpis:')
+			->setRequired('Zadejte nadpis článku.');
+
+		$form->addCheckbox('show_title', 'Nadpis ve stránce')
+			->setDefaultValue(false);
+
+		$form->addText('slug', 'Slug (jenom malá písmena, čísla, pomlčky):')
+			->addRule($form::Pattern, 'Zadejte platný slug (malá písmena, čísla, pomlčky).', '^[a-z0-9\-]+$');
+
+		$form->addTextArea('content', 'Obsah:')
+			->setRequired('Zadejte obsah článku.')
+			->setHtmlAttribute('rows', 10);
+
+		$form->addCheckbox('is_published', 'Publikováno')
+			->setDefaultValue(false);
+
+		$form->addSubmit('submit', 'Uložit');
+
+		if ($articleId !== 0) {
+			$articleData = $this->articleRepository->getArticleById($articleId);
+			$form->setDefaults([
+				'type' => $articleData->type,
+				'title' => $articleData->title,
+				'content' => $articleData->content,
+				'slug' => $articleData->slug,
+				'show_title' => $articleData->show_title == 1,
+				'is_published' => $articleData->is_published == 1,
+			]);
+		}
+
+		$form->onSuccess[] = [$this, 'articleFormSubmitted'];
 
 		return $form;
 	}
@@ -167,6 +241,31 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		else {
 			$this->userRepository->createUser($values);
 			$this->flashMessage('Uživatel byl úspěšně vytvořen.', 'success');
+		}
+
+		$this->redirect('this');
+	}
+
+	public function articleFormSubmitted(Form $form, $values): void {
+		$articleId = (int) $this->getParameter('articleId');
+
+		if ($articleId !== 0) {
+			//edit
+			$update = $this->articleRepository->updateArticle($articleId, $values, $this->user->getId());
+			if (!$update) {
+				$this->flashMessage('Nebyly provedeny žádné změny.', 'danger');
+			} else {
+				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
+			}
+		} else {
+			//novy
+			$create = $this->articleRepository->createArticle($values, $this->user->getId());
+			foreach ($create['messages'] as $message) {
+				foreach ($message as $type => $msg) {
+					$this->flashMessage($msg, $type);
+				}
+			}
+			$this->redirect('Administration:articles', ['articleId' => $create['articleId']]);
 		}
 
 		$this->redirect('this');
