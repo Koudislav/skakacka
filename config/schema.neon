@@ -1,0 +1,8 @@
+licences:
+	label: 'Api klíče a licence'
+	description: "Licence a api klíče pro použití použitých knihoven a nástrojů."
+	items:
+		tinymce_api_key:
+			type: string
+			description: "API klíč pro TinyMCE editor."
+			default: 'mppcv3lb67516mbqhwamdkmcgeez4lpeqy9on9qyxxnzrf6u'

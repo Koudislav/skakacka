@@ -31,14 +31,14 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		[
 			'action' => 'Administration:users',
 			'icon' => 'bi bi-people-fill',
-			'title' => 'Správa uživatelů',
+			'title' => 'Uživatelé',
 			// 'accessRoles' => ['admin', 'superadmin'],
 			'onlyForLoggedIn' => true,
 		],
 		[
 			'action' => 'Administration:menus',
 			'icon' => 'bi bi-list',
-			'title' => 'Správa menu',
+			'title' => 'Menu',
 			// 'accessRoles' => ['superadmin'],
 			'onlyForLoggedIn' => true,
 			'params' => [
@@ -169,7 +169,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			$active->setDisabled();
 		}
 
-		$form->addSubmit('submit', 'Uložit');
+		$form->addSubmit('submit', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
 
 		if ($userId !== 0) {
 			$userData = $this->userRepository->getUserById($userId);
@@ -211,13 +212,13 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		$form->addTextArea('content', 'Obsah:')
 			->setHtmlAttribute('rows', 10)
-			->setRequired('Zadejte obsah článku.')
 			->setHtmlAttribute('class', 'tiny-editor');
 
 		$form->addCheckbox('is_published', 'Publikováno')
 			->setDefaultValue(false);
 
-		$form->addSubmit('submit', 'Uložit');
+		$form->addSubmit('submit', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
 
 		if ($articleId !== 0) {
 			$articleData = $this->articleRepository->getArticleById($articleId);
@@ -270,7 +271,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			]);
 		}
 
-		$form->addSubmit('submit', 'Uložit');
+		$form->addSubmit('submit', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
 
 		$form->onSuccess[] = [$this, 'menuFormSubmitted'];
 

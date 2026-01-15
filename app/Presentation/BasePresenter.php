@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Presentation;
 
 use Nette;
+use App\Model\Config;
 use App\Model\LessCompiler;
 use App\Repository\MenuRepository;
 use Nette\Application\UI\Form;
 
 class BasePresenter extends Nette\Application\UI\Presenter {
+
+	/** @var Config @inject */
+	public $config;
 
 	/** @var LessCompiler @inject */
 	public $lessCompiler;
@@ -21,6 +25,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		parent::startup();
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
+		$this->template->config = $this->config->getArray();
 	}
 
 	public function beforeRender() {
@@ -37,7 +42,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	private function processNavbarMenu(): array {
 		$menu = [];
 		$menuItems = $this->menuRepository->findByKey('main_horizontal', true);
-		bdump($menuItems, 'menuItems');
 		foreach ($menuItems as $item) {
 			$menu[] = [
 				'label' => $item->label,
@@ -45,7 +49,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			];
 		}
 
-		bdump($menu, 'menu');
 		return $menu;
 	}
 

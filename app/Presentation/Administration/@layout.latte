@@ -37,33 +37,19 @@
 		<script>
 		tinymce.init({
 			selector: '.tiny-editor',
-			height: 300,
-			menubar: true,
 			plugins: [
-				'advlist',
-				'autolink',
+				'code',
 				'lists',
 				'link',
-				'image',
-				'charmap',
-				'preview',
-				'anchor',
-				'searchreplace',
-				'visualblocks',
-				'code',
-				'fullscreen',
-				'insertdatetime',
-				'media',
 				'table',
-				'paste',
-				'code',
-				'help',
-				'wordcount',
 			],
-			toolbar: 'undo redo | formatselect | ' +
+			toolbar_mode: 'wrap',
+			height: 300,
+			menubar: true,
+			toolbar: 'undo redo | blocks  | ' +
 					'bold italic underline | alignleft aligncenter ' +
 					'alignright alignjustify | bullist numlist outdent indent | ' +
-					'removeformat | help',
+					'link table | removeformat code',
 			content_css: '//www.tiny.cloud/css/codepen.min.css'
 		});
 		</script>
