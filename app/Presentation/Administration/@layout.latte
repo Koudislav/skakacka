@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="cs">
-{include '../@head.latte'}
+<head>
+	{include '../@head.latte'}
+
+	<title>{ifset title}{include title|stripHtml} | {/ifset}Skákačka</title>
+
+	{asset? 'main.js'}
+</head>
 
 <body class="d-flex flex-column min-vh-100">
 	{snippet flashes}

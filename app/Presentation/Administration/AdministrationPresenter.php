@@ -7,6 +7,7 @@ namespace App\Presentation\Administration;
 use App\Forms\BootstrapFormFactory;
 use App\Forms\LoginFormFactory;
 use App\Repository\ArticleRepository;
+use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 use Nette;
 use Nette\Application\UI\Form;
@@ -20,6 +21,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	
 	/** @var ArticleRepository @inject */
 	public $articleRepository;
+
+	/** @var MenuRepository @inject */
+	public $menuRepository;
 
 	/** @var UserRepository @inject */
 	public $userRepository;
@@ -36,11 +40,22 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'onlyForLoggedIn' => true,
 		],
 		[
+			'action' => 'Administration:menus',
+			'icon' => 'bi bi-list',
+			'title' => 'Správa menu',
+			// 'accessRoles' => ['superadmin'],
+			'onlyForLoggedIn' => true,
+			'params' => [
+				'menuKey' => '0',
+				'newMenu' => '1',
+			],
+		],
+		[
 			'action' => 'Administration:articles',
 			'icon' => 'bi bi-file-earmark-text',
 			'title' => 'Články',
 			'onlyForLoggedIn' => true,
-		]
+		],
 	];
 
 	public const ARTICLE_TYPES = [
@@ -51,6 +66,10 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public const ROLES = [
 		'admin' => 'Administrátor',
 		'superadmin' => 'Superadministrátor'
+	];
+
+	public const MENU_LINK_TYPES = [
+		'article' => 'Odkaz na článek',
 	];
 
 	public function beforeRender() {
@@ -88,10 +107,26 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->template->currentArticleId = $articleId;
 		$articles = $this->articleRepository->findAll();
 		$this->template->articles = $articles;
-		bdump($articles);
-
 	}
-	
+
+	public function actionMenus(?string $menuKey, ?string $newMenu, ?int $menuId): void {
+		if (!$this->user->isLoggedIn()) {
+			$this->flashMessage('Nemáte oprávnění.', 'danger');
+			$this->redirect('Administration:default');
+		}
+	}
+
+	public function renderMenus(?string $menuKey, ?string $newMenu, ?int $menuId): void {
+		$menuKey = $this->getParameter('menuKey');
+		$this->template->currentMenuKey = $menuKey;
+		$this->template->currentMenuId = $menuId;
+		if ($menuKey === '0') {
+			$this->template->menus = $this->menuRepository->findKeys();
+		} else {
+			$this->template->menus = $this->menuRepository->findByKey($menuKey);
+		}
+	}
+
 	//components
 	protected function createComponentLoginForm() {
 		return $this->loginFormFactory->create([$this, 'loginFormSubmitted']);
@@ -205,6 +240,48 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		return $form;
 	}
 
+	public function createComponentMenuForm() {
+		$form = BootstrapFormFactory::create('oneLine');
+		$menuKey = (string) $this->getParameter('menuKey');
+		$menuId = (int) $this->getParameter('menuId');
+		$menuKeyInput = $form->addText('menu_key', 'Název menu:');
+
+		if ($menuKey !== '0') {
+			$menuKeyInput->setDisabled()->setOmitted(false)->setDefaultValue($menuKey);
+		} else {
+			$menuKeyInput->setRequired('Zadejte název menu.');
+		}
+
+		$form->addText('label', 'Popisek položky:')
+			->setRequired('Zadejte popisek položky menu.');
+
+		$form->addSelect('linkType', 'Typ odkazu:', self::MENU_LINK_TYPES)->setDefaultValue('article');
+
+		$form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleListForSelect())
+			->setPrompt('Žádný článek')
+			->setRequired('Vyberte článek, na který má položka menu odkazovat.');
+
+		$form->addCheckbox('is_active', 'Aktivní')
+			->setDefaultValue(true);
+
+		if ($menuKey !== '0' && !empty($menuId)) {
+			$menuItem = $this->menuRepository->getById($menuId, $menuKey);
+			$form->setDefaults([
+				'label' => $menuItem['db']->label,
+				'is_active' => $menuItem['db']->is_active == 1,
+				'linkType' => $menuItem['processed']['linkType'],
+				'linkedArticleSlug' => $menuItem['processed']['linkedArticleSlug'],
+			]);
+		}
+
+		$form->addSubmit('submit', 'Uložit');
+
+		$form->onSuccess[] = [$this, 'menuFormSubmitted'];
+
+		return $form;
+
+	}
+
 	//Form manipulation
 	public function userFormSubmitted(Form $form, $values): void {
 		if (!$this->user->isLoggedIn()) {
@@ -279,6 +356,24 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 	}
 
+	public function menuFormSubmitted(Form $form, $values): void {
+		$menuKey = (string) $this->getParameter('menuKey');
+		$newMenu = (string) $this->getParameter('newMenu');
+		$menuId = (int) $this->getParameter('menuId');
+
+		if ($menuKey !== '0' && $newMenu !== '1') {
+			//edit
+			$this->menuRepository->updateMenuItem($values, $menuId);
+			$this->flashMessage('Položka menu byla úspěšně upravena.', 'success');
+			$this->redirect('this');
+		} else {
+			//novy
+			$menuId = $this->menuRepository->createMenuItem($values);
+			$this->flashMessage('Položka menu byla úspěšně vytvořena.', 'success');
+			$this->redirect('Administration:menus', ['menuKey' => $values->menu_key, 'menuId' => $menuId]);
+		}
+	}	
+
 	public function loginFormSubmitted($form, $values) {
 		try {
 			$this->getUser()->login($values->email, $values->password);
@@ -292,6 +387,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->redirect('this');
 	}
 
+	//handlers
 	public function handleLogout(): void {
 		$this->user->logout(true);
 		$this->redirect('Administration:default');
@@ -301,6 +397,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public function processMenu(): array {
 		$menu = self::MENU;
 		foreach ($menu as $key => $m) {
+			$link = $this->link($m['action'], $m['params'] ?? []);
+			$menu[$key]['link'] = $link;
+
 			if (isset($m['accessRoles'])) {
 				$hasAccess = false;
 				foreach ($m['accessRoles'] as $role) {
@@ -321,6 +420,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				}
 			}
 		}
+
 		return $menu;
 	}
 

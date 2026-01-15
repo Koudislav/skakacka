@@ -22,7 +22,7 @@ class ArticleRepository {
 	) {}
 
 	public function findAll() {
-		return $this->db->table(self::ARTICLES_TABLE);
+		return $this->db->table(self::ARTICLES_TABLE)->order('title ASC');
 	}
 
 	public function getArticleById(int $articleId): ?ActiveRow {
@@ -121,6 +121,17 @@ class ArticleRepository {
 			$slugs[] = $row->slug;
 		}
 		return $slugs;
+	}
+
+	public function getArticleListForSelect(): array {
+		$articles = $this->db->table(self::ARTICLES_TABLE)
+			->order('title ASC')
+			->fetchAll();
+		$result = [];
+		foreach ($articles as $article) {
+			$result[$article->slug] = ($article->is_published != 1 ? 'NEPUBLIKOVANO! ' : '') . $article->title . ' /// ' . $article->slug;
+		}
+		return $result;
 	}
 
 }

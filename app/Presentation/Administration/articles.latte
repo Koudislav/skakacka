@@ -7,7 +7,9 @@
 	{foreach $articles as $a}
 		<a n:href="Administration:articles, articleId: $a->id"
 				n:class="$currentArticleId === $a->id ? active, 'list-group-item list-group-item-action'">
-			{$a->title}
+			
+			<i n:class="bi, $a->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+			<span title="{$a->slug}">{$a->title}</span>
 		</a>
 	{/foreach}
 </div>

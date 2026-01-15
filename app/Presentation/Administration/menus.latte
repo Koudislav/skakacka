@@ -1,0 +1,51 @@
+{block menu}
+
+<div class="list-group shadow-sm">
+	<a n:href="Administration:menus, menuKey: '0', newMenu: 1"
+			n:class="$currentMenuKey === '0' ? active, 'list-group-item list-group-item-action'">
+		{if $currentMenuKey === '0'}
+			<i class="bi bi-plus"></i> Nové menu
+		{else}
+			<i class="bi bi-arrow-left-square"></i> Zpět na výběr menu
+		{/if}
+	</a>
+
+	{if $currentMenuKey === '0'}
+		{foreach $menus as $m}
+			<a n:href="Administration:menus, menuKey: $m, newMenu: 1"
+					n:class="$currentMenuKey === $m ? active, 'list-group-item list-group-item-action'">
+				{$m}
+			</a>
+		{/foreach}
+	{else}
+		{foreach $menus as $m}
+			<a n:href="Administration:menus, menuKey: $m->menu_key, menuId: $m->id"
+					n:class="$currentMenuId === $m->id ? active, 'list-group-item list-group-item-action'">
+				<i n:class="bi, $m->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+				{$m->label}
+			</a>
+		{/foreach}
+	{/if}
+	{if $currentMenuKey !== '0'}
+
+		<a n:href="Administration:menus, menuKey: $currentMenuKey, newMenu: 1"
+				n:class="$presenter->getParameter('newMenu') == '1' ? active, 'list-group-item list-group-item-action'">
+			<i class="bi bi-plus-circle"></i> Přidat položku menu
+		</a>
+	{/if}
+</div>
+{/block}
+
+{block content}
+<h1 class="h3" n:block=title>
+	{if $currentMenuKey === '0'}
+		Založení nového menu
+	{else}
+		Úprava existujícího menu <b>{$currentMenuKey}</b>
+	{/if}
+</h1>
+<h5 n:if="$currentMenuKey !== '0' && $presenter->getParameter('newMenu') == '1'"> 
+	- Přidání položky menu
+</h5>
+<hr>
+{control menuForm}
