@@ -26,11 +26,14 @@ class MenuRepository {
 			->fetchPairs('menu_key', 'menu_key');
 	}
 
-	public function findByKey(string $menuKey): array {
-		return $this->db->table('menus')
+	public function findByKey(string $menuKey, bool $onlyActive = false): array {
+		$query = $this->db->table('menus')
 			->where('menu_key', $menuKey)
-			->order('position ASC')
-			->fetchAll();
+			->order('position ASC');
+		if ($onlyActive) {
+			$query->where('is_active', 1);
+		}
+		return $query->fetchAll();
 	}
 
 	public function getById(int $id, ?string $menuKey = null): array {

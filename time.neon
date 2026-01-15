@@ -17,4 +17,6 @@
 26.01.14 12:45 - 13:15 - základní frontend článků, převážně routování
 
 26.01.15 11:00 - 13:45 - CRUD menu, provazani s clanky
-26.01.15 14:00 - ??? - vykresleni menu - componenta
+26.01.15 14:00 - 14:30 - Deploy pro testování na testovacím serveru.
+
+26.01.15 14:30 - 14:45 - loading zakladniho menu v navbaru dle DB z administrace

@@ -7,7 +7,6 @@ namespace App\Presentation\Administration;
 use App\Forms\BootstrapFormFactory;
 use App\Forms\LoginFormFactory;
 use App\Repository\ArticleRepository;
-use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 use Nette;
 use Nette\Application\UI\Form;
@@ -21,9 +20,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	
 	/** @var ArticleRepository @inject */
 	public $articleRepository;
-
-	/** @var MenuRepository @inject */
-	public $menuRepository;
 
 	/** @var UserRepository @inject */
 	public $userRepository;
