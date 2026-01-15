@@ -10,6 +10,8 @@ use App\Repository\ArticleRepository;
 use App\Repository\UserRepository;
 use Nette;
 use Nette\Application\UI\Form;
+use Nette\Caching\Cache;
+use Nette\Caching\Storage;
 
 final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
@@ -21,6 +23,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var UserRepository @inject */
 	public $userRepository;
+
+	/** @var Storage @inject */
+	public Storage $cacheStorage;
 
 	public const MENU = [
 		[
@@ -174,8 +179,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			->addRule($form::Pattern, 'Zadejte platný slug (malá písmena, čísla, pomlčky).', '^[a-z0-9\-]+$');
 
 		$form->addTextArea('content', 'Obsah:')
+			->setHtmlAttribute('rows', 10)
 			->setRequired('Zadejte obsah článku.')
-			->setHtmlAttribute('rows', 10);
+			->setHtmlAttribute('class', 'tiny-editor');
 
 		$form->addCheckbox('is_published', 'Publikováno')
 			->setDefaultValue(false);
@@ -248,6 +254,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public function articleFormSubmitted(Form $form, $values): void {
 		$articleId = (int) $this->getParameter('articleId');
+		$cache = new Cache($this->cacheStorage);
 
 		if ($articleId !== 0) {
 			//edit
@@ -257,6 +264,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			} else {
 				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
 			}
+			$cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->redirect('this');
 		} else {
 			//novy
 			$create = $this->articleRepository->createArticle($values, $this->user->getId());
@@ -265,10 +274,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 					$this->flashMessage($msg, $type);
 				}
 			}
+			$cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
 			$this->redirect('Administration:articles', ['articleId' => $create['articleId']]);
 		}
-
-		$this->redirect('this');
 	}
 
 	public function loginFormSubmitted($form, $values) {

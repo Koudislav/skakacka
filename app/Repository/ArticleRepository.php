@@ -11,6 +11,11 @@ use Nette\Utils\Strings;
 class ArticleRepository {
 
 	public const ARTICLES_TABLE = 'articles';
+	public const ALL_ARTICLE_SLUGS_CACHE_KEY = 'all_article_slugs';
+
+	public const FORBIDEN_SLUGS = [
+		'administration',
+	];
 
 	public function __construct(
 		private Explorer $db,
@@ -92,11 +97,30 @@ class ArticleRepository {
 				$slugQuery->where('id != ?', $excludeArticleId);
 			}
 	
-			if ($slugQuery->count('*') === 0) {
+			if ($slugQuery->count('*') === 0 && $checkSlug !== '' && !in_array($checkSlug, self::FORBIDEN_SLUGS, true)) {
 				return $checkSlug;
 			}
 			$i++;
 		}
+	}
+
+	public function getBySlug(string $slug): ?ActiveRow {
+		return $this->db->table(self::ARTICLES_TABLE)
+			->where('slug', $slug)
+			->fetch() ?: null;
+	}
+
+	public function getAllSlugs(bool $onlyPublished = true): array {
+		$slugs = [];
+		$query = $this->db->table(self::ARTICLES_TABLE);
+		if ($onlyPublished) {
+			$query->where('is_published', 1);
+		}
+		$rows = $query->select('slug')->fetchAll();
+		foreach ($rows as $row) {
+			$slugs[] = $row->slug;
+		}
+		return $slugs;
 	}
 
 }
