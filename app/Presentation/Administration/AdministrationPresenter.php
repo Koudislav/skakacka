@@ -7,11 +7,13 @@ namespace App\Presentation\Administration;
 use App\Forms\BootstrapFormFactory;
 use App\Forms\LoginFormFactory;
 use App\Repository\ArticleRepository;
+use App\Repository\GalleryRepository;
 use App\Repository\UserRepository;
 use Nette;
 use Nette\Application\UI\Form;
 use Nette\Caching\Cache;
 use Nette\Caching\Storage;
+use Nette\Utils\Random;
 
 final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
@@ -20,6 +22,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	
 	/** @var ArticleRepository @inject */
 	public $articleRepository;
+
+	/** @var GalleryRepository @inject */
+	public $galleryRepository;
 
 	/** @var UserRepository @inject */
 	public $userRepository;
@@ -39,7 +44,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'action' => 'Administration:menus',
 			'icon' => 'bi bi-list',
 			'title' => 'Menu',
-			// 'accessRoles' => ['superadmin'],
 			'onlyForLoggedIn' => true,
 			'params' => [
 				'menuKey' => '0',
@@ -50,6 +54,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'action' => 'Administration:articles',
 			'icon' => 'bi bi-file-earmark-text',
 			'title' => 'Články',
+			'onlyForLoggedIn' => true,
+		],
+		[
+			'action' => 'Administration:galleries',
+			'icon' => 'bi bi-images',
+			'title' => 'Galerie',
 			'onlyForLoggedIn' => true,
 		],
 	];
@@ -121,6 +131,19 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		} else {
 			$this->template->menus = $this->menuRepository->findByKey($menuKey);
 		}
+	}
+
+	public function actionGalleries(int $galleryId = 0): void {
+		if (!$this->user->isLoggedIn()) {
+			$this->flashMessage('Nemáte oprávnění.', 'danger');
+			$this->redirect('Administration:default');
+		}
+	}
+
+	public function renderGalleries(int $galleryId = 0): void {
+		$this->template->currentGalleryId = $galleryId;
+		$galleries = $this->galleryRepository->findAllGalleries();
+		$this->template->galleries = $galleries;
 	}
 
 	//components
@@ -280,6 +303,31 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	}
 
+	public function createComponentGalleryForm() {
+		$form = BootstrapFormFactory::create('oneLine');
+		$form->addText('title', 'Název galerie:')
+			->setRequired('Zadejte název galerie.');
+		$form->addTextArea('description', 'Popis galerie:')
+			->setHtmlAttribute('class', 'tiny-editor');
+
+		$form->addCheckbox('is_published', 'Publikováno')
+			->setDefaultValue(false);
+		$form->addSubmit('submit', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
+
+		if ((int) $this->getParameter('galleryId') !== 0) {
+			$galleryData = $this->galleryRepository->getGalleryById((int) $this->getParameter('galleryId'));
+			$form->setDefaults([
+				'title' => $galleryData->title,
+				'description' => $galleryData->description,
+				'is_published' => $galleryData->is_published == 1,
+			]);
+		}
+
+		$form->onSuccess[] = [$this, 'galleryFormSubmitted'];
+		return $form;
+	}
+
 	//Form manipulation
 	public function userFormSubmitted(Form $form, $values): void {
 		if (!$this->user->isLoggedIn()) {
@@ -370,7 +418,40 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			$this->flashMessage('Položka menu byla úspěšně vytvořena.', 'success');
 			$this->redirect('Administration:menus', ['menuKey' => $values->menu_key, 'menuId' => $menuId]);
 		}
-	}	
+	}
+
+	public function galleryFormSubmitted(Form $form, $values) {
+		$galleryId = (int) $this->getParameter('galleryId');
+
+		if ($galleryId !== 0) {
+			$update = $this->galleryRepository->updateGallery($galleryId, $values, $this->user->getId());
+			if (!$update) {
+				$this->flashMessage('Nebyly provedeny žádné změny.', 'danger');
+			} else {
+				$this->flashMessage('Galerie byla úspěšně upravena.', 'success');
+			}
+			$this->redirect('this');
+		} else {
+			$create = $this->galleryRepository->createGallery($values, $this->user->getId());
+			$this->flashMessage('Galerie byla úspěšně vytvořena.', 'success');
+			$this->redirect('Administration:galleries', ['galleryId' => $create->id]);
+		}
+	}
+
+	public function actionGalleryImages(int $galleryId): void {
+		if (!$this->user->isLoggedIn()) {
+			$this->flashMessage('Nemáte oprávnění.', 'danger');
+			$this->redirect('Administration:default');
+		}
+	}
+
+	public function renderGalleryImages(int $galleryId): void {
+		$this->template->currentGalleryId = $galleryId;
+		$galleryData = $this->galleryRepository->getGalleryById($galleryId);
+		$this->template->gallery = $galleryData;
+		$images = $this->galleryRepository->findPicturesByGalleryId($galleryId);
+		$this->template->images = $images;
+	}
 
 	public function loginFormSubmitted($form, $values) {
 		try {
@@ -389,6 +470,34 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public function handleLogout(): void {
 		$this->user->logout(true);
 		$this->redirect('Administration:default');
+	}
+
+	public function actionUploadPhoto(): void {	
+		$file = $this->getHttpRequest()->getFile('photo');
+		$galleryId = (int) $this->getHttpRequest()->getPost('galleryId');
+
+		if (!$file || !$file->isOk() || !$file->isImage()) {
+			$this->sendJson(['status' => 'error']);
+		}
+
+		$name = Random::generate(20) . '.' . $file->getSuggestedExtension();
+		$basepath = __DIR__ . '/../../../';
+		$filePath = 'gallery/' . $galleryId . '/' . $name;
+		$path = $basepath . $filePath;
+
+		$file->move($path);
+
+		$this->galleryRepository->insertPhoto([
+			'galleryId' => $galleryId,
+			'original_name' => $name,
+			'path_original' => $filePath,
+			'created_at' => new \DateTime(),
+		], (int) $this->user->getId());
+
+		$this->sendJson([
+			'status' => 'ok',
+			'file' => $name,
+		]);
 	}
 
 	//helpers

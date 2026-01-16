@@ -1,0 +1,55 @@
+{block content}
+<input type="file" id="photos" multiple>
+
+<div class="progress">
+    <div id="progressBar" style="width:0%">0 %</div>
+</div>
+
+<button id="startUpload">Nahrát</button>
+{/block}
+{block scripts}
+{include parent}
+<script>
+	let files = [];
+	let current = 0;
+
+	document.getElementById('startUpload').addEventListener('click', () => {
+		files = Array.from(document.getElementById('photos').files);
+		current = 0;
+		uploadNext();
+	});
+
+	function uploadNext() {
+		if (current >= files.length) {
+			location.reload();
+			return;
+		}
+
+		const formData = new FormData();
+		formData.append('photo', files[current]);
+		formData.append('galleryId', {$currentGalleryId});
+
+		naja.makeRequest(
+			'POST',
+			{link Administration:uploadPhoto},
+			formData,
+			{ history: false }
+		).then(response => {
+			current++;
+			updateProgress();
+			uploadNext();
+		}).catch(() => {
+			current++;
+			updateProgress();
+			uploadNext();
+		});
+	}
+
+	function updateProgress() {
+		const percent = Math.round((current / files.length) * 100);
+		const bar = document.getElementById('progressBar');
+		bar.style.width = percent + '%';
+		bar.innerText = percent + ' %';
+	}
+</script>
+{/block}

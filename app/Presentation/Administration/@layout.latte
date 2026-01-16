@@ -21,18 +21,23 @@
 	{include '@adminPanel.latte'}
 	<div class="container flex-grow-1 pt-2">
 		<div class="row">
-			<div class="col-3">
-				{block menu}
-					menu neni k dispozici
-				{/block}
-			</div>
-			<div class="col-9">
-				{include content}
-			</div>
+			{ifset blockMenu}
+				<div class="col-3">
+					{include blockMenu}
+				</div>
+				<div class="col-9">
+					{include content}
+				</div>
+			{else}
+				<div class="col-12">
+					{include content}
+				</div>
+			{/ifset}
 		</div>
 	</div>
 
 	{include '../@bodyScripts.latte'}
+	<script src="{$basePath}/assets/js/Naja.min.js"></script>
 	{block scripts}
 		<script>
 		tinymce.init({

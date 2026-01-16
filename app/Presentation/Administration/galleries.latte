@@ -1,0 +1,34 @@
+{block blockMenu}
+<div class="list-group rounded shadow-sm">
+	<a n:if="$user->isLoggedIn()"
+			n:href="Administration:galleries, galleryId: 0"
+			n:class="$currentGalleryId === 0 ? active, 'list-group-item list-group-item-action'">
+		<i class="bi bi-plus-circle"></i> Nová galerie
+	</a>
+	{foreach $galleries as $menuItem}
+		<a n:if="$user->isInRole('superadmin') || ($user->isInRole('admin') && $currentGalleryId === $menuItem->id)"
+				n:href="Administration:galleries, galleryId: $menuItem->id"
+				n:class="$currentGalleryId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
+			<i n:class="bi, $menuItem->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+			{$menuItem->title}
+		</a>
+	{/foreach}
+</div>
+{/block}
+{block content}
+	<h1 class="h3" n:block=title>
+		Správa galerií - 
+		{if $currentGalleryId === 0}
+			Nová galerie
+		{else}
+			Úprava galerie {$galleries[$currentGalleryId]->title}
+
+			<div>
+				<a n:href="Administration:galleryImages, galleryId: $galleries[$currentGalleryId]->id" class="btn btn-sm btn-success mt-2" target="_blank">
+					<i class="bi bi-images"></i> Správa obrázků galerie
+				</a>
+			</div>
+		{/if}
+	</h1>
+	<hr>
+	{control galleryForm}

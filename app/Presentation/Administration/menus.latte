@@ -1,10 +1,10 @@
-{block menu}
+{block blockMenu}
 
 <div class="list-group shadow-sm">
 	<a n:href="Administration:menus, menuKey: '0', newMenu: 1"
 			n:class="$currentMenuKey === '0' ? active, 'list-group-item list-group-item-action'">
 		{if $currentMenuKey === '0'}
-			<i class="bi bi-plus"></i> Nové menu
+			<i class="bi bi-plus-circle"></i> Nové menu
 		{else}
 			<i class="bi bi-arrow-left-square"></i> Zpět na výběr menu
 		{/if}
