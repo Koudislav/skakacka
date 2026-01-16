@@ -1,0 +1,9 @@
+{
+	"files.eol": "\n",
+	"files.autoGuessEncoding": true,
+	"files.autoSave": "afterDelay",
+	"editor.renderWhitespace": "all",
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
+	"editor.detectIndentation": false
+}
