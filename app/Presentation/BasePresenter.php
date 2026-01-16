@@ -25,7 +25,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		parent::startup();
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
-		$this->template->config = $this->config->getArray();
+		$this->template->config = $this->config;
 	}
 
 	public function beforeRender() {

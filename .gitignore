@@ -1,2 +1,6 @@
 !.gitignore
+.gitattributes
 /vendor/
+/vendor
+/temp/
+/temp

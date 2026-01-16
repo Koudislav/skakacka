@@ -1,11 +1,13 @@
 services:
 	- App\Core\RouterFactory::createRouter
+	cacheStorage: Nette\Caching\Storages\FileStorage(%tempDir%/cache)
+
 	# - Nette\Caching\Storages\FileStorage(%tempDir%/cache)
 
 	authenticator: App\Model\UserAuthenticator
 
 	- App\Model\LessCompiler(%appDir%/../assets/less, %tempDir%/less, %wwwDir%/assets/css, %wwwDir%)
-	config: App\Model\Config(%appDir%/../)
+	config: App\Model\Config(@cacheStorage)
 
 search:
 	-	in: %appDir%

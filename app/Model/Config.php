@@ -4,49 +4,60 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use Nette\Caching\Storage;
+use App\Repository\ConfigurationRepository;
+use Nette\Caching\Cache;
+
 class Config implements \ArrayAccess {
-
-	const SCHEMA_PATH = 'config/schema.neon';
-	const CONFIG_PATH = 'config/config.neon';
-
-	protected $default = [];
-	protected $custom = [];
 	protected $config = [];
+	protected $cache;
 
 	public function __construct(
-			protected $appDir,
+		private Storage $storage,
+		private ConfigurationRepository $configurationRepository,
 		) {
-		$this->default = $this->loadDefaults();
-		$this->custom = $this->loadConfig();
-		$this->config = $this->custom + $this->default;
+		$this->cache = new Cache($this->storage);
+		$this->config = $this->loadConfig();
 	}
 
 	public function getArray(): array {
 		return $this->config;
 	}
 
-	public function getDefault(): array {
-		return $this->default;
+	protected function loadConfig(): array {
+		$config = $this->cache->load('app_config', function (&$dependencies) {
+			$dependencies[Cache::Expire] = '10 minutes';
+			$rawConfig = $this->configurationRepository->getAll(true);
+			$config = $this->processConfig($rawConfig);
+			return $config ?? [];
+		});
+		return $config;
 	}
 
-	public function getCustom(): array {
-		return $this->custom;
-	} 
+	public function processConfig($rawConfig): array {
+		$config = [];
+		foreach ($rawConfig as $item) {
+			$key = $item->key;
+			$type = $item->type;
 
-	protected function loadDefaults(): array {
-		$schema = \Nette\Neon\Neon::decode(file_get_contents($this->appDir . self::SCHEMA_PATH));
-		$defaultConfig = [];
-		foreach ($schema as $name => $section) {
-			foreach ($section['items'] as $key => $value) {
-				$defaultConfig[$key] = $value['default'];
+			switch ($type) {
+				case 'int':
+					$config[$key] = (int)$item->value_int;
+					break;
+				case 'float':
+					$config[$key] = (float)$item->value_float;
+					break;
+				case 'bool':
+					$config[$key] = $item->value_bool === 1 ? true : false;
+					break;
+				case 'string':
+					$config[$key] = $item->value_string;
+					break;
+				default:
+					break;
 			}
 		}
-		return $defaultConfig;
-	}
-
-	protected function loadConfig(): array {
-		$config = \Nette\Neon\Neon::decode(file_get_contents($this->appDir . self::CONFIG_PATH));
-		return $config ?? [];
+		return $config;
 	}
 
 	public function offsetExists($offset): bool {
