@@ -110,7 +110,10 @@ class MenuRepository {
 				'linkedArticleSlug' => json_decode((string) $row->params, true)['slug'] ?? null,
 			];
 		}
-		return ['linkType' => 'default'];
+		return [
+			'linkType' => 'index',
+			'linkedArticleSlug' => null,
+		];
 	}
 
 }

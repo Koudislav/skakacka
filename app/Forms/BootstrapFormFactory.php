@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Forms;
 
 use Nette\Application\UI\Form;
+use Nette\Forms\Control;
 use Nette\Forms\Rendering\DefaultFormRenderer;
 
-final class BootstrapFormFactory {
+final class BootstrapFormFactory extends DefaultFormRenderer {
 	public const TYPE_INLINE = 'inLine';
 	public const TYPE_ONE_LINE = 'oneLine';
 	public const TYPE_BASIC = 'basic';
 
 	public static function create(string $type = 'basic', ?string $containerClass = null, ?bool $noLabel = true): Form {
 		$form = new Form();
+		$form->setRenderer(new self());
 
 		$form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
@@ -88,7 +90,7 @@ final class BootstrapFormFactory {
 		$renderer->wrappers['error']['item'] = 'p';
 
 		$renderer->wrappers['controls']['container'] = 'div class="row g-3"';
-		$renderer->wrappers['pair']['container'] = 'div class="col-md-6 mb-2"';
+		$renderer->wrappers['pair']['container'] = 'div class="col-md-6 mb-2" %container-id%';
 		$renderer->wrappers['pair']['.error'] = 'has-error';
 
 		$renderer->wrappers['control']['container'] = 'div class="form-group"';
@@ -106,7 +108,7 @@ final class BootstrapFormFactory {
 		$renderer->wrappers['error']['item'] = 'p';
 
 		$renderer->wrappers['controls']['container'] = 'div class="row g-1"';
-		$renderer->wrappers['pair']['container'] = 'div class="col-12 mb-1"';
+		$renderer->wrappers['pair']['container'] = 'div class="col-12 mb-1" %container-id%';
 		$renderer->wrappers['pair']['.error'] = 'has-error';
 
 		$renderer->wrappers['control']['container'] = 'div class="form-group"';
@@ -132,7 +134,7 @@ final class BootstrapFormFactory {
 		// $renderer->wrappers['groups']['container'] = 'div class="row row-cols-lg-auto g-2 align-items-center"';
 
 		// --- Každý pár (label + control) ---
-		$renderer->wrappers['pair']['container'] = 'div class="col' . ($noLabel ? ' no-label' : '') . '"';
+		$renderer->wrappers['pair']['container'] = 'div %container-id% class="col' . ($noLabel ? ' no-label' : '') . '"';
 		$renderer->wrappers['pair']['.error'] = 'has-error';
 
 		// --- Label (v tomto případě nechceme zobrazovat) ---
@@ -181,6 +183,15 @@ final class BootstrapFormFactory {
 				}
 			}
 		};
+	}
+
+	public function renderPair(Control $control): string {
+		if (is_callable([$control, 'getOption']) === false) {
+			return parent::renderPair($control);
+		}
+		$html = parent::renderPair($control);
+		$html = str_replace('container-id', $control->getOption('container-id') ? 'id="' . $control->getOption('container-id') . '"' : '', $html);
+		return $html;
 	}
 
 }

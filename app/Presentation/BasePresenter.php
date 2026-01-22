@@ -26,6 +26,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
 		$this->template->config = $this->config;
+		$this->template->actualLink = $this->link('this');
 	}
 
 	public function beforeRender() {

@@ -9,6 +9,8 @@ services:
 	- App\Model\LessCompiler(%appDir%/../assets/less, %tempDir%/less, %wwwDir%/assets/css, %wwwDir%)
 	config: App\Model\Config(@cacheStorage)
 
+	- App\Service\ImageService(%wwwDir%)
+
 search:
 	-	in: %appDir%
 		classes:

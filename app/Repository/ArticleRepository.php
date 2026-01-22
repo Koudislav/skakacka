@@ -134,4 +134,12 @@ class ArticleRepository {
 		return $result;
 	}
 
+	public function getIndexes() {
+		return $this->db->table(self::ARTICLES_TABLE)
+			->where('is_published', 1)
+			->where('type', 'index')
+			->order('created_at DESC')
+			->fetchAll();
+	}
+
 }

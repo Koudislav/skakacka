@@ -8,7 +8,7 @@
 	{asset? 'main.js'}
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 bg-light">
 	{snippet flashes}
 		<div class="flashes">
 			<div n:foreach="$flashes as $flash" n:class="flash, $flash->type, alert, 'alert-' . $flash->type, 'alert-dismissible fade show'" role="alert">

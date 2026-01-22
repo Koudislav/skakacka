@@ -1,11 +1,74 @@
 {block content}
-<input type="file" id="photos" multiple>
+{control uploadPhotosForm}
 
-<div class="progress">
-    <div id="progressBar" style="width:0%">0 %</div>
+<div class="p-2 mb-2">
+	<div id="progress" class="progress" role="progressbar" aria-label="Example with label" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+		<div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+	</div>
 </div>
 
 <button id="startUpload">Nahrát</button>
+<style>
+.ratio>.cover-button {
+	position: absolute !important;
+	width: auto !important;
+	height: auto !important;
+	left: unset !important;
+}
+</style>
+<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 mt-4">
+	{foreach $images as $image}
+		<div class="col" data-photo-id="{$image->id}">
+			<div class="card h-100 shadow-sm">
+
+				<div class="ratio ratio-1x1 bg-light position-relative">
+					<img
+						src="/{$image->path_small}"
+						class="card-img-top object-fit-cover"
+						alt="{empty($image->description) ? $image->original_name : $image->description}"
+						loading="lazy"
+					>
+
+					<button
+						n:class="$image->is_cover ? btn-success : btn-outline-warning, 'cover-button btn btn-sm position-absolute end-0 m-1 set-cover'"
+						style="z-index: 2;"
+						title="Nastavit jako náhled"
+					>
+						<i n:class="bi, $image->is_cover ? bi-star-fill : bi-star"></i>
+					</button>
+
+				</div>
+
+				<div class="card-body p-2">
+					<input
+						type="text"
+						class="form-control form-control-sm image-description"
+						value="{$image->description}"
+						placeholder="Popisek…"
+					>
+				</div>
+
+				<div class="card-footer d-flex justify-content-between p-2">
+					<button
+						class="btn btn-sm btn-outline-secondary toggle-visibility"
+						title="Zviditelnit / skrýt"
+					>
+						<i class="bi {$image->is_visible ? 'bi-eye text-success' : 'bi-eye-slash text-danger'}"></i>
+					</button>
+
+					<button
+						class="btn btn-sm btn-outline-danger delete-image"
+						title="Smazat"
+					>
+						<i class="bi bi-trash"></i>
+					</button>
+				</div>
+
+			</div>
+		</div>
+	{/foreach}
+</div>
+
 {/block}
 {block scripts}
 {include parent}
@@ -14,7 +77,8 @@
 	let current = 0;
 
 	document.getElementById('startUpload').addEventListener('click', () => {
-		files = Array.from(document.getElementById('photos').files);
+		files = Array.from(document.getElementById('photos-upload-input').files);
+		console.log(files);
 		current = 0;
 		uploadNext();
 	});
@@ -47,9 +111,69 @@
 
 	function updateProgress() {
 		const percent = Math.round((current / files.length) * 100);
-		const bar = document.getElementById('progressBar');
+		const bar = document.getElementById('progress-bar');
+		const progress = document.getElementById('progress');
 		bar.style.width = percent + '%';
-		bar.innerText = percent + ' %';
+		bar.textContent = percent + ' %';
+		progress.setAttribute('aria-valuenow', percent);
 	}
+
+	document.addEventListener('click', e => {
+
+		// Toggle visibility
+		if (e.target.closest('.toggle-visibility')) {
+			const card = e.target.closest('[data-photo-id]');
+			const id = card.dataset.photoId;
+
+			naja.makeRequest('POST', {link toggleImageVisibility!}, { imageId: id}, { history: false })
+				.then(() => location.reload());
+		}
+
+		// Delete image
+		if (e.target.closest('.delete-image')) {
+			if (!confirm('Opravdu chcete obrázek smazat?')) return;
+
+			const card = e.target.closest('[data-photo-id]');
+			const id = card.dataset.photoId;
+
+			naja.makeRequest('POST', {link deleteImage!}, { imageId: id }, { history: false })
+				.then(() => card.remove());
+		}
+		// Set as cover
+		if (e.target.closest('.set-cover')) {
+			const card = e.target.closest('[data-photo-id]');
+			const id = card.dataset.photoId;
+
+			naja.makeRequest('POST', {link setGalleryCover!}, { imageId: id }, { history: false })
+				.then(() => location.reload());
+		}
+	});
+
+	// Update description (debounced)
+	document.querySelectorAll('.image-description').forEach(input => {
+		let timeout;
+
+		input.addEventListener('input', () => {
+			clearTimeout(timeout);
+			timeout = setTimeout(() => {
+				const card = input.closest('[data-photo-id]');
+				const id = card.dataset.photoId;
+
+				naja.makeRequest(
+					'POST',
+					{link updateImageDescription!},
+					{ imageId: id, description: input.value },
+					{ history: false },
+				)
+				.then(() => {
+					input.classList.add('border', 'border-success', 'saved-indicator');
+					setTimeout(() => {
+						input.classList.remove('border', 'border-success', 'saved-indicator');
+					}, 2000);
+				});
+			}, 500);
+		});
+	});
+
 </script>
 {/block}

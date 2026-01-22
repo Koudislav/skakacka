@@ -9,11 +9,11 @@ use App\Forms\LoginFormFactory;
 use App\Repository\ArticleRepository;
 use App\Repository\GalleryRepository;
 use App\Repository\UserRepository;
+use App\Service\ImageService;
 use Nette;
 use Nette\Application\UI\Form;
 use Nette\Caching\Cache;
 use Nette\Caching\Storage;
-use Nette\Utils\Random;
 
 final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
@@ -31,6 +31,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var Storage @inject */
 	public Storage $cacheStorage;
+
+	/** @var \App\Service\ImageService @inject */
+	public ImageService $imageService;
 
 	public const MENU = [
 		[
@@ -67,6 +70,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public const ARTICLE_TYPES = [
 		'article' => 'Běžný článek',
 		'news' => 'Novinka',
+		'index' => 'Úvodní stránka',
 	];
 
 	public const ROLES = [
@@ -76,10 +80,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public const MENU_LINK_TYPES = [
 		'article' => 'Odkaz na článek',
+		'index' => 'Hlavní stránka',
 	];
 
 	public function beforeRender() {
 		$this->template->menu = $this->processMenu();
+		$this->checkConsistency();
 	}
 
 	public function actionUsers(int $userId = 0): void {
@@ -111,8 +117,20 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public function renderArticles(int $articleId = 0): void {
 		$this->template->currentArticleId = $articleId;
-		$articles = $this->articleRepository->findAll();
-		$this->template->articles = $articles;
+		$data = $this->articleRepository->findAll();
+
+		$indexes = [];
+		$articles = [];
+
+		foreach ($data as $key => $article) {
+			if ($article->type === 'index') {
+				$indexes[$key] = $article;
+			} else {
+				$articles[$key] = $article;
+			}
+		}
+		$this->template->articleName = $data[$articleId]->title ?? null;
+		$this->template->menus = $indexes + $articles;
 	}
 
 	public function actionMenus(?string $menuKey, ?string $newMenu, ?int $menuId): void {
@@ -275,10 +293,16 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$form->addText('label', 'Popisek položky:')
 			->setRequired('Zadejte popisek položky menu.');
 
-		$form->addSelect('linkType', 'Typ odkazu:', self::MENU_LINK_TYPES)->setDefaultValue('article');
+		$linkType = $form->addSelect('linkType', 'Typ odkazu:', self::MENU_LINK_TYPES)->setDefaultValue('article');
 
-		$form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleListForSelect())
-			->setPrompt('Žádný článek')
+		$linkType->addCondition($form::Equal, 'article')
+			->toggle('#linkedArticleSlug-pair-container');
+
+		$linkedArticleSlug = $form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleListForSelect())
+			->setPrompt('Žádný článek');
+
+		$linkedArticleSlug->setOption('container-id', 'linkedArticleSlug-pair-container');
+		$linkedArticleSlug->addConditionOn($linkType, $form::Equal, 'article')
 			->setRequired('Vyberte článek, na který má položka menu odkazovat.');
 
 		$form->addCheckbox('is_active', 'Aktivní')
@@ -300,7 +324,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$form->onSuccess[] = [$this, 'menuFormSubmitted'];
 
 		return $form;
-
 	}
 
 	public function createComponentGalleryForm() {
@@ -325,6 +348,16 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 
 		$form->onSuccess[] = [$this, 'galleryFormSubmitted'];
+		return $form;
+	}
+
+	public function createComponentUploadPhotosForm(): Form {
+		$form = BootstrapFormFactory::create('oneLine');
+		$form->addMultiUpload('photos', 'Nahrát fotografie:')
+			->setHtmlId('photos-upload-input')
+			->setHtmlAttribute('accept', '.jpg,.jpeg,.png,.webp')
+			->setRequired('Vyberte alespoň jeden obrázek k nahrání.')
+			->addRule(Form::Image, 'Pouze soubory typu JPEG, PNG nebo WebP jsou povoleny.');
 		return $form;
 	}
 
@@ -402,7 +435,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 	}
 
-	public function menuFormSubmitted(Form $form, $values): void {
+	public function menuFormSubmitted(Form $form, \stdClass $values): void {
 		$menuKey = (string) $this->getParameter('menuKey');
 		$newMenu = (string) $this->getParameter('newMenu');
 		$menuId = (int) $this->getParameter('menuId');
@@ -420,7 +453,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 	}
 
-	public function galleryFormSubmitted(Form $form, $values) {
+	public function galleryFormSubmitted(Form $form, \stdClass $values) {
 		$galleryId = (int) $this->getParameter('galleryId');
 
 		if ($galleryId !== 0) {
@@ -448,8 +481,29 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public function renderGalleryImages(int $galleryId): void {
 		$this->template->currentGalleryId = $galleryId;
 		$galleryData = $this->galleryRepository->getGalleryById($galleryId);
+
+		if (!$galleryData) {
+			$this->flashMessage('Zvolená galerie neexistuje.', 'danger');
+			$this->redirect('Administration:galleries');
+		}
 		$this->template->gallery = $galleryData;
 		$images = $this->galleryRepository->findPicturesByGalleryId($galleryId);
+
+		if ($images) {
+			$coverNotSet = true;
+			foreach ($images as $image) {
+				$firstId = $firstId ?? $image->id;
+				if ($image->is_cover) {
+					$coverNotSet = false;
+					break;
+				}
+			}
+			if ($coverNotSet) {
+				$this->galleryRepository->setGalleryCover($firstId);
+				$images = $this->galleryRepository->findPicturesByGalleryId($galleryId);
+			}
+		}
+
 		$this->template->images = $images;
 	}
 
@@ -476,28 +530,55 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$file = $this->getHttpRequest()->getFile('photo');
 		$galleryId = (int) $this->getHttpRequest()->getPost('galleryId');
 
-		if (!$file || !$file->isOk() || !$file->isImage()) {
+		$gallery = $this->galleryRepository->getGalleryById($galleryId);
+
+		if (!$gallery) {
 			$this->sendJson(['status' => 'error']);
+			return;
 		}
 
-		$name = Random::generate(20) . '.' . $file->getSuggestedExtension();
-		$basepath = __DIR__ . '/../../../';
-		$filePath = 'gallery/' . $galleryId . '/' . $name;
-		$path = $basepath . $filePath;
+		if (!$file || !$file->isOk() || !$file->isImage()) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
 
-		$file->move($path);
+		// === TEMP FILE ===
+		$tempPath = $file->getTemporaryFile();
+		$originalName = $file->getUntrustedName();
+		$originalName = mb_substr($originalName, 0, 255);
 
-		$this->galleryRepository->insertPhoto([
-			'galleryId' => $galleryId,
-			'original_name' => $name,
-			'path_original' => $filePath,
+		// === DB INSERT (new) ===
+		$photoId = $this->galleryRepository->insertPhoto([
+			'gallery_id' => $galleryId,
+			'original_name' => $originalName,
+			'processed' => 'processing',
 			'created_at' => new \DateTime(),
-		], (int) $this->user->getId());
-
-		$this->sendJson([
-			'status' => 'ok',
-			'file' => $name,
+			'created_by' => (int) $this->user->getId(),
 		]);
+
+		try {
+			$paths = $this->imageService->processUpload(
+				$tempPath,
+				$galleryId,
+				$originalName
+			);
+
+			$this->galleryRepository->updatePhoto($photoId, array_merge($paths, [
+				'processed' => 'done',
+			]));
+
+			$this->sendJson(['status' => 'ok']);
+		}
+		catch (\Throwable $e) {
+			$this->galleryRepository->updatePhoto($photoId, [
+				'processed' => 'error',
+			]);
+			$this->flashMessage('Nastala chyba při zpracování obrázku: ' . $e->getMessage(), 'danger');
+
+			\Tracy\Debugger::log($e, 'image');
+
+			$this->sendJson(['status' => 'error']);
+		}
 	}
 
 	//helpers
@@ -529,6 +610,70 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 
 		return $menu;
+	}
+
+	public function checkConsistency(): void {
+		$indexArticles = $this->articleRepository->getIndexes();
+		if (!$indexArticles) {
+			$this->flashMessage('Varování: Není nastaven žádný článek jako úvodní stránka. V administraci vytvořte nový článek a nastavte jeho typ na "Úvodní stránka" + publikováno.', 'danger');
+		}
+		if (count($indexArticles) > 1) {
+			$this->flashMessage('Varování: Je nastaveno více než jeden článek jako úvodní stránka. V administraci upravte články a nastavte pouze jeden z nich jako "Úvodní stránka" + publikováno.', 'danger');
+		}
+	}
+
+	public function handleToggleImageVisibility(?int $imageId): void {
+		if (!$imageId) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+		$this->galleryRepository->toggleImageVisibility($imageId);
+		$this->sendJson(['status' => 'ok']);
+	}
+
+	public function handleDeleteImage(?int $imageId): void {
+		if (!$imageId) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+
+		$image = $this->galleryRepository->getImageById($imageId);
+	
+		if (!$image) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+
+		// 1) smaž soubory z filesystemu
+		$this->imageService->deleteImageFiles([
+			'path_original' => $image->path_original,
+			'path_big' => $image->path_big,
+			'path_medium' => $image->path_medium,
+			'path_small' => $image->path_small,
+		]);
+
+		// 2) smaž z DB
+		$this->galleryRepository->deleteImage($imageId);
+
+		$this->sendJson(['status' => 'ok']);
+	}
+
+	public function handleUpdateImageDescription(?int $imageId, ?string $description): void {
+		if (!$imageId || $description === null) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+		$this->galleryRepository->updateImageDescription($imageId, $description);
+		$this->sendJson(['status' => 'ok']);
+	}
+
+	public function handleSetGalleryCover(?int $imageId): void {
+		if (!$imageId) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+		$this->galleryRepository->setGalleryCover($imageId);
+		$this->sendJson(['status' => 'ok']);
 	}
 
 }

@@ -1,2 +1,8 @@
 {block content}
-<h1 n:block=title>Vítejte na Skákačka projektech!</h1>
+{dump}
+{if $article->show_title}
+	<h1>{$article->title}</h1>
+{/if}
+<div>
+	{$article->content|noescape}
+</div>
