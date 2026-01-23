@@ -22,7 +22,7 @@ class GalleryRepository {
 		$query = $this->db->table(self::GALLERIES_TABLE)
 			->order('created_at DESC');
 		if ($onlyPublished) {
-			$query->where('published', 1);
+			$query->where('is_published', 1);
 		}
 		return $query->fetchAll();
 	}
@@ -53,6 +53,13 @@ class GalleryRepository {
 				'updated_at' => new \DateTime(),
 				'updated_by' => $userId,
 			]);
+	}
+
+	public function findCoverPicturesByGalleryIds(array $ids) {
+		return $this->db->table(self::PICTURES_TABLE)
+			->where('gallery_id', $ids)
+			->where('is_cover', 1)
+			->fetchAll();
 	}
 
 	//Images

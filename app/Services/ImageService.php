@@ -45,7 +45,7 @@ final class ImageService {
 
 		$filename = Random::generate(20);
 
-		$galleryDir = $this->wwwDir . '/gallery/' . $galleryId;
+		$galleryDir = $this->wwwDir . '/assets/gallery/' . $galleryId;
 		FileSystem::createDir($galleryDir . '/original');
 
 
@@ -55,7 +55,7 @@ final class ImageService {
 		FileSystem::copy($sourcePath, $originalPath);
 
 		$paths = [
-			'path_original' => 'gallery/' . $galleryId . '/original/' . $originalFilename,
+			'path_original' => 'assets/gallery/' . $galleryId . '/original/' . $originalFilename,
 			'path_big' => null,
 			'path_medium' => null,
 			'path_small' => null,
@@ -73,7 +73,7 @@ final class ImageService {
 			$img->save($thumbPath, $q, Image::JPEG);
 			unset($img);
 
-			$paths['path_' . $key] = 'gallery/' . $galleryId . '/' . $thumbFilename;
+			$paths['path_' . $key] = 'assets/gallery/' . $galleryId . '/' . $thumbFilename;
 		}
 
 		return $paths;

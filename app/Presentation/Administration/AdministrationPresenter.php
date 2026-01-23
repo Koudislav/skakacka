@@ -81,6 +81,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public const MENU_LINK_TYPES = [
 		'article' => 'Odkaz na článek',
 		'index' => 'Hlavní stránka',
+		// 'gallery' => 'Galerie',
 	];
 
 	public function beforeRender() {

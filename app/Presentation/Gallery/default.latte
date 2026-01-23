@@ -1,0 +1,35 @@
+{block content}
+
+<h1>Galerie</h1>
+{dump}
+<div class="row gx-3 gy-3">
+	{foreach $galleries as $gallery}
+		{continueIf empty($covers[$gallery->id])}
+		<div class="col-6 col-md-4 col-lg-3">
+			<a class="text-decoration-none" href="{link Gallery:view, $gallery->id}">
+				<div class="card h-100"> <!-- h-100 = karta zabírá celou výšku sloupce -->
+
+					<!-- Cover image s fixní výškou -->
+					<img 
+						src="{$basePath}/{$covers[$gallery->id]->path_small}" 
+						class="card-img-top" 
+						alt="{$gallery->title}"
+						style="height:200px; object-fit:cover; width:100%;">
+
+					<div class="card-body">
+						<h5 class="card-title text-truncate">{$gallery->title}</h5>
+						<p class="card-text text-truncate">
+							{if $gallery->description}
+								{$gallery->description|stripHtml}
+							{else}
+								&nbsp;
+							{/if}
+						</p>
+					</div>
+				</div>
+			</a>
+		</div>
+	{/foreach}
+</div>
+
+{/block}

@@ -1,30 +1,35 @@
-26.01.09 07:30 - 08:00 - zalozeni repository, inicializace aplikace
-26.01.09 08:00 - 08:30 - navrh db
-26.01.09 08:30 - 09:30 - zakladni graficke prvky formularu, inicializace less compilatoru, tvorba login formu pro prihlaseni k administraci
-26.01.09 09:30 - 10:00 - zakladni DB komunikace, prihlaseni administratora, prace s hesly
+faze1:
+	26.01.09 07:30 - 08:00 - zalozeni repository, inicializace aplikace
+	26.01.09 08:00 - 08:30 - navrh db
+	26.01.09 08:30 - 09:30 - zakladni graficke prvky formularu, inicializace less compilatoru, tvorba login formu pro prihlaseni k administraci
+	26.01.09 09:30 - 10:00 - zakladni DB komunikace, prihlaseni administratora, prace s hesly
 
 
-26.01.12 09:00 - 09:30 - vytvoreni layoutovych struktur pro administraci.
-26.01.12 09:30 - 10:30 - tvorba CRUD pro spravu uzivatelu
-26.01.12 11:00 - 12:00 - správa uživatelů - logika a bezpečnost
-26.01.12 17:00 - 17:30 - ukladani historie clanku, DB trigger
+	26.01.12 09:00 - 09:30 - vytvoreni layoutovych struktur pro administraci.
+	26.01.12 09:30 - 10:30 - tvorba CRUD pro spravu uzivatelu
+	26.01.12 11:00 - 12:00 - správa uživatelů - logika a bezpečnost
+	26.01.12 17:00 - 17:30 - ukladani historie clanku, DB trigger
 
 
-26.01.13 09:00 - 09:45 - tvorba CRUD pro spravu clanku
+	26.01.13 09:00 - 09:45 - tvorba CRUD pro spravu clanku
 
-26.01.14 11:45 - 12:15 - správa článků - logika a bezpečnost
-26.01.14 12:15 - 12:30 - základní integrace WYSIWYG editoru TinyMCE bez nastavení
-26.01.14 12:45 - 13:15 - základní frontend článků, převážně routování
+	26.01.14 11:45 - 12:15 - správa článků - logika a bezpečnost
+	26.01.14 12:15 - 12:30 - základní integrace WYSIWYG editoru TinyMCE bez nastavení
+	26.01.14 12:45 - 13:15 - základní frontend článků, převážně routování
 
-26.01.15 11:00 - 13:45 - CRUD menu, provazani s clanky
-26.01.15 14:00 - 14:30 - Deploy pro testování na testovacím serveru.
+	26.01.15 11:00 - 13:45 - CRUD menu, provazani s clanky
+	26.01.15 14:00 - 14:30 - Deploy pro testování na testovacím serveru.
 
-26.01.15 14:30 - 14:45 - loading zakladniho menu v navbaru dle DB z administrace
+	26.01.15 14:30 - 14:45 - loading zakladniho menu v navbaru dle DB z administrace
 
-26.01.15 18:30 - 19:00 - testování, rozšíření WYSIWYG
-26.01.15 19:00 - 19:30 - přidání schéma konfigurace
+	26.01.15 18:30 - 19:00 - testování, rozšíření WYSIWYG
+	26.01.15 19:00 - 19:30 - přidání schéma konfigurace
 
-26.01.16 14:00 - 16:00 - tvorba CRUD pro spravu galerii , bulk upload obrazku, progress bar
+	26.01.16 14:00 - 16:00 - tvorba CRUD pro spravu galerii , bulk upload obrazku, progress bar
 
-26.01.21 12:30 - 13:00 - indexy
-26.01.21 13:00 - 14:30 - minimalni grafika
+	26.01.21 12:30 - 13:00 - indexy
+	26.01.21 13:00 - 14:30 - minimalni grafika
+
+
+faze2:
+	26.01.23 14:45 - 16:00 - galerie - galerie na frontendu, základní zobrazení obrázků v galerii a galerii samotnych

@@ -1,0 +1,73 @@
+{block content}
+
+<h1 n:block=title>{$gallery->title}</h1>
+
+<!-- Justified container -->
+<div id="justified-gallery" class="d-flex flex-wrap justify-content-between gap-2">
+	{foreach $pictures as $picture}
+		<div class="justified-item">
+			<a href="#">
+				<img 
+					src="{$basePath}/{$picture->path_medium}" 
+					alt="{$picture->description}" 
+					style="height:255px; width:auto; display:block; border-radius:5px;">
+			</a>
+		</div>
+	{/foreach}
+</div>
+
+<!-- imagesLoaded -->
+<script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const container = document.getElementById('justified-gallery');
+	const items = Array.from(container.querySelectorAll('.justified-item img'));
+	const spacing = 10;       // mezera mezi obrázky
+	const targetRowHeight = 255; // max výška řádku
+
+	function layoutGallery() {
+		const containerWidth = container.clientWidth;
+		let row = [];
+		let rowWidth = 0;
+
+		items.forEach((img, index) => {
+			const aspectRatio = img.naturalWidth / img.naturalHeight;
+			const width = targetRowHeight * aspectRatio;
+
+			row.push({ img, width, aspectRatio });
+			rowWidth += width + spacing;
+
+			const isLastItem = index === items.length - 1;
+
+			if (rowWidth - spacing >= containerWidth || isLastItem) {
+				// pokud je poslední řádek a není zaplněn, škáluj jen pokud je více obrázků
+				const scale = (!isLastItem || row.length > 1)
+					? (containerWidth - spacing * (row.length - 1)) / (rowWidth - spacing)
+					: 1; // jeden obrázek na posledním řádku -> žádné škálování
+
+				row.forEach(item => {
+					const w = item.width * scale;
+					const h = targetRowHeight * scale;
+					item.img.style.width = `${ w }px`;
+					item.img.style.height = `${ h }px`;
+					item.img.parentElement.style.width = `${ w }px`;
+					item.img.parentElement.style.height = `${ h }px`;
+				});
+
+				// reset pro další řádek
+				row = [];
+				rowWidth = 0;
+			}
+		});
+	}
+
+	// počkej, až se načtou všechny obrázky
+	imagesLoaded(container, () => {
+		layoutGallery();
+		window.addEventListener('resize', layoutGallery); // responzivně
+	});
+});
+</script>
+
+{/block}

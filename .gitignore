@@ -4,5 +4,6 @@
 /vendor
 /temp/
 /temp
-/www/gallery
+/www/assets/gallery
+!/www/assets/gallery/.gitkeep
 /www/assets/css/styles.css
