@@ -567,7 +567,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				'processed' => 'done',
 			]));
 
-			$this->sendJson(['status' => 'ok']);
+			$status = 'ok';
 		}
 		catch (\Throwable $e) {
 			$this->galleryRepository->updatePhoto($photoId, [
@@ -577,8 +577,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 			\Tracy\Debugger::log($e, 'image');
 
-			$this->sendJson(['status' => 'error']);
+			$status = 'error';
 		}
+		$this->sendJson(['status' => $status]);
 	}
 
 	//helpers
