@@ -36,7 +36,7 @@ class GalleryPresenter extends \App\Presentation\BasePresenter {
 			$this->error('Galerie nebyla nalezena');
 		}
 
-		$pictures = $this->galleryRepository->findPicturesByGalleryId($id);
+		$pictures = $this->galleryRepository->findPicturesByGalleryId($id, true);
 
 		$this->template->gallery = $gallery;
 		$this->template->pictures = $pictures;

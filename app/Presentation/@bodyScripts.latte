@@ -1,2 +1,54 @@
 <script src="{$basePath}/assets/js/bootstrap.bundle.min.js"></script>
 <script src="{$basePath}/assets/js/netteForms.min.js"></script>
+
+<script>
+let lightboxInstances = {};
+function initLightboxes() {
+	// Znič staré instance, aby se nehromadily
+	for (const key in lightboxInstances) {
+		if (lightboxInstances[key] && typeof lightboxInstances[key].destroy === 'function') {
+			lightboxInstances[key].destroy();
+		}
+	}
+	lightboxInstances = {};
+
+	// Najdi všechny galerie
+	const galleries = document.querySelectorAll('.glightbox[data-gallery]');
+	galleries.forEach(el => {
+		const galleryName = el.getAttribute('data-gallery');
+		if (!lightboxInstances[galleryName]) {
+			lightboxInstances[galleryName] = GLightbox({
+				selector: `.glightbox[data-gallery="${ galleryName }"]`,
+				touchNavigation: true,
+				loop: true,
+				zoomable: true,
+				openEffect: 'zoom',
+				closeEffect: 'fade',
+				closeButton: true,
+				moreLength: 20,
+    			moreText: 'Zobrazit celý popis',
+			});
+		}
+	});
+
+	// Samostatné obrázky (bez data-gallery)
+	const singles = document.querySelectorAll('.glightbox:not([data-gallery])');
+	if (singles.length > 0) {
+		lightboxInstances['singles'] = GLightbox({
+			selector: '.glightbox:not([data-gallery])',
+			touchNavigation: false,
+			loop: false,
+			zoomable: true,
+			openEffect: 'zoom',
+			closeEffect: 'fade',
+			closeButton: true,
+			moreLength: 20,
+			moreText: 'Zobrazit celý popis',
+		});
+	}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+	initLightboxes();
+});
+</script>

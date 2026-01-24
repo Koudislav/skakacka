@@ -15,6 +15,7 @@ class ArticleRepository {
 
 	public const FORBIDEN_SLUGS = [
 		'administration',
+		'gallery',
 	];
 
 	public function __construct(
@@ -63,7 +64,7 @@ class ArticleRepository {
 			? $values->slug
 			: Strings::webalize($values->title)
 		);
-		if ($slug !== $values->slug) {
+		if ($slug !== strtolower($values->slug)) {
 			$return['messages'][] = ['info' => 'Poznámka: Zadaný slug již existoval, byl změněn na unikátní hodnotu.'];
 		}
 		$data = [

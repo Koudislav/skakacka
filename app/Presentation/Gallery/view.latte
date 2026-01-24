@@ -1,12 +1,13 @@
 {block content}
 
 <h1 n:block=title>{$gallery->title}</h1>
+<div>{$gallery->description|noescape}</div>
 
 <!-- Justified container -->
-<div id="justified-gallery" class="d-flex flex-wrap justify-content-between gap-2">
+<div id="justified-gallery" class="d-flex flex-wrap gap-2">
 	{foreach $pictures as $picture}
 		<div class="justified-item">
-			<a href="#">
+			<a href="{$basePath}/{$picture->path_big}" class="glightbox" data-gallery="gallery-{$gallery->id}" data-description="{$picture->description}">
 				<img 
 					src="{$basePath}/{$picture->path_medium}" 
 					alt="{$picture->description}" 
@@ -35,27 +36,38 @@ document.addEventListener('DOMContentLoaded', () => {
 			const aspectRatio = img.naturalWidth / img.naturalHeight;
 			const width = targetRowHeight * aspectRatio;
 
-			row.push({ img, width, aspectRatio });
-			rowWidth += width + spacing;
+			row.push({ img, width });
+			rowWidth += width;
 
 			const isLastItem = index === items.length - 1;
+			const totalSpacing = spacing * (row.length - 1);
 
-			if (rowWidth - spacing >= containerWidth || isLastItem) {
-				// pokud je poslední řádek a není zaplněn, škáluj jen pokud je více obrázků
-				const scale = (!isLastItem || row.length > 1)
-					? (containerWidth - spacing * (row.length - 1)) / (rowWidth - spacing)
-					: 1; // jeden obrázek na posledním řádku -> žádné škálování
+			if (rowWidth + totalSpacing >= containerWidth || isLastItem) {
+				let scale = 1;
 
-				row.forEach(item => {
-					const w = item.width * scale;
-					const h = targetRowHeight * scale;
+				if (!isLastItem || row.length > 1) {
+					scale = (containerWidth - totalSpacing) / rowWidth;
+				}
+
+				let usedWidth = 0;
+
+				row.forEach((item, i) => {
+					let w = Math.round(item.width * scale);
+					let h = Math.round(targetRowHeight * scale);
+
+					// poslední obrázek v řádku = korekce
+					if (i === row.length - 1) {
+						w = containerWidth - usedWidth - totalSpacing;
+					}
+
 					item.img.style.width = `${ w }px`;
 					item.img.style.height = `${ h }px`;
 					item.img.parentElement.style.width = `${ w }px`;
 					item.img.parentElement.style.height = `${ h }px`;
+
+					usedWidth += w;
 				});
 
-				// reset pro další řádek
 				row = [];
 				rowWidth = 0;
 			}

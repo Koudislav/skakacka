@@ -81,7 +81,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public const MENU_LINK_TYPES = [
 		'article' => 'Odkaz na článek',
 		'index' => 'Hlavní stránka',
-		// 'gallery' => 'Galerie',
+		'gallery' => 'Galerie',
 	];
 
 	public function beforeRender() {
@@ -298,6 +298,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		$linkType->addCondition($form::Equal, 'article')
 			->toggle('#linkedArticleSlug-pair-container');
+		$linkType->addCondition($form::Equal, 'gallery')
+			->toggle('#galleryId-pair-container');
 
 		$linkedArticleSlug = $form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleListForSelect())
 			->setPrompt('Žádný článek');
@@ -305,6 +307,13 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$linkedArticleSlug->setOption('container-id', 'linkedArticleSlug-pair-container');
 		$linkedArticleSlug->addConditionOn($linkType, $form::Equal, 'article')
 			->setRequired('Vyberte článek, na který má položka menu odkazovat.');
+
+		$galleryId = $form->addSelect('galleryId', 'Propojit s galerií:', ['default' => 'Výpis všech galerií'] + $this->galleryRepository->getGalleryListForSelect(true))
+			->setPrompt('Vyberte galerii');
+
+		$galleryId->setOption('container-id', 'galleryId-pair-container');
+		$galleryId->addConditionOn($linkType, $form::Equal, 'gallery')
+			->setRequired('Vyberte galerii, na kterou má položka menu odkazovat.');
 
 		$form->addCheckbox('is_active', 'Aktivní')
 			->setDefaultValue(true);

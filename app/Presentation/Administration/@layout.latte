@@ -2,6 +2,7 @@
 <html lang="cs">
 <head>
 	{include '../@head.latte'}
+	<script src="https://cdn.tiny.cloud/1/{$config['tinymce_api_key']}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
 	<title>{ifset title}{include title|stripHtml} | {/ifset}Skákačka</title>
 	{asset? 'main.js'}
@@ -37,6 +38,11 @@
 
 	{include '../@bodyScripts.latte'}
 	<script src="{$basePath}/assets/js/Naja.min.js"></script>
+
+	<!-- N1ED core -->
+	<script src="https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.css">
+
 	{block scripts}
 		<script>
 		tinymce.init({
@@ -46,14 +52,26 @@
 				'lists',
 				'link',
 				'table',
+				'n1ed',
 			],
+			  external_plugins: {
+				n1ed: "https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"
+			},
+			n1ed: {
+				// Volitelné: konfigurace N1ED
+				// URL k blokům / assets / Bootstrap grid
+				grid: 'bootstrap5',  // N1ED bude používat Bootstrap 5 grid
+				customBlocks: [
+				{ name: 'card', label: 'Bootstrap Card', html: '<div class="card"><div class="card-body">Card Content</div></div>' }
+				]
+			},
 			toolbar_mode: 'wrap',
 			height: 300,
 			menubar: true,
 			toolbar: 'undo redo | blocks  | ' +
 					'bold italic underline | alignleft aligncenter ' +
 					'alignright alignjustify | bullist numlist outdent indent | ' +
-					'link table | removeformat code',
+					'link table | removeformat code | n1ed',
 			content_css: [
 				'//www.tiny.cloud/css/codepen.min.css',
 				'/assets/css/bootstrap.min.css',

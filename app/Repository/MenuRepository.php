@@ -65,8 +65,8 @@ class MenuRepository {
 			'menu_key' => $values->menu_key,
 			'label' => $values->label,
 			'is_active' => $values->is_active ? 1 : 0,
-			'presenter' => $this->resolvePresenter($values->linkType),
-			'action' => $this->resolveAction($values->linkType),
+			'presenter' => $this->resolvePresenter($values),
+			'action' => $this->resolveAction($values),
 			'params' => $this->resolveParams($values),
 		];
 		return $this->db->table(self::MENUS_TABLE)->insert($insert)->id;
@@ -76,31 +76,41 @@ class MenuRepository {
 		$update = [
 			'label' => $values->label,
 			'is_active' => $values->is_active ? 1 : 0,
-			'presenter' => $this->resolvePresenter($values->linkType),
-			'action' => $this->resolveAction($values->linkType),
+			'presenter' => $this->resolvePresenter($values),
+			'action' => $this->resolveAction($values),
 			'params' => $this->resolveParams($values),
 		];
 		$this->db->table(self::MENUS_TABLE)->where('id', $id)->update($update);
 	}
 
-	public function resolvePresenter(string $linkType): string {
-		return match ($linkType) {
+	public function resolvePresenter(\stdClass $values): string {
+		return match ($values->linkType) {
 			'article' => 'Article',
+			'gallery' => 'Gallery',
 			default => 'Home',
 		};
 	}
 
-	public function resolveAction(string $linkType): string {
-		return match ($linkType) {
-			default => 'default',
+	public function resolveAction(\stdClass $values): string {
+		switch ($values->linkType) {
+			case 'gallery':
+				if (is_numeric($values->galleryId)) {
+					return 'view';
+				}
+			default: return 'default';
 		};
 	}
 
 	public function resolveParams(\stdClass $values): ?string {
-		if ($values->linkType === 'article') {
-			return json_encode(['slug' => $values->linkedArticleSlug]);
+		switch ($values->linkType) {
+			case 'article':
+				return json_encode(['slug' => $values->linkedArticleSlug]);
+			case 'gallery':
+				if (is_numeric($values->galleryId)) {
+					return json_encode(['id' => (int) $values->galleryId]);
+				}
+			default: return null;
 		}
-		return null;
 	}
 
 	public function backProcessForForm(ActiveRow $row): array {

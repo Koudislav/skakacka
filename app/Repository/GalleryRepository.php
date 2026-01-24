@@ -62,13 +62,30 @@ class GalleryRepository {
 			->fetchAll();
 	}
 
+	public function getGalleryListForSelect(bool $onlyPublished = false): array {
+		$query = $this->db->table(self::GALLERIES_TABLE)
+			->select('id, title')
+			->order('title ASC');
+		if ($onlyPublished) {
+			$query->where('is_published', 1);
+		}
+		$galleries = [];
+		foreach ($query->fetchAll() as $gallery) {
+			$galleries[$gallery->id] = $gallery->title;
+		}
+		return $galleries;
+	}
+
 	//Images
 
-	public function findPicturesByGalleryId(int $galleryId) {
-		return $this->db->table(self::PICTURES_TABLE)
-			->where('gallery_id', $galleryId)
+	public function findPicturesByGalleryId(int $galleryId, bool $onlyPublished = false) {
+		$query = $this->db->table(self::PICTURES_TABLE)
+			->where('gallery_id', $galleryId);
 			// ->order('uploaded_at DESC')
-			->fetchAll();
+		if ($onlyPublished) {
+			$query->where('is_visible', 1);
+		}
+		return $query->fetchAll();
 	}
 
 	public function getImageById(int $id) {
