@@ -1,14 +1,14 @@
 {dump}
-<nav class="navbar navbar-expand-lg main-navbar-custom">
+<nav class="navbar navbar-expand-lg main-navbar-custom pt-1">
 	<div class="container position-relative">
-		<a class="navbar-brand mb-0 h1 fs-1" n:href="Home:default">
-			Skákačka
+		<a class="navbar-brand pt-0" n:href="Home:default">
+			<img src="{$config['logo_path']}" alt="Skákačka" height="70">
 		</a>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse justify-content-center position-md-absolute start-50 translate-md-middle-x" id="navbarNav">
-			<ul class="navbar-nav pt-3 fs-4">
+			<ul class="navbar-nav fs-4">
 				{foreach $navbarMenu as $menuItem}
 					<li class="nav-item">
 						<a n:class="($menuItem['link'] === $actualLink || (str_starts_with($menuItem['link'], '/gallery') && str_starts_with($actualLink, '/gallery/view/'))) ? active, nav-link"

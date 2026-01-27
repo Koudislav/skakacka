@@ -20,7 +20,12 @@ class UserAuthenticator implements Authenticator {
 	}
 
 	public function createIdentity($user): SimpleIdentity {
-		return new SimpleIdentity($user->id, $user->role, $user);
+		if ($user->role === 'owner') {
+			$roles = ['admin', 'superadmin', 'owner'];
+		} else {
+			$roles = [$user->role];
+		}
+		return new SimpleIdentity($user->id, $roles, $user);
 	}
 
 }

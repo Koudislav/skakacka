@@ -42,43 +42,74 @@
 	<!-- N1ED core -->
 	<script src="https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 	{block scripts}
-		<script>
-		tinymce.init({
-			selector: '.tiny-editor',
-			plugins: [
-				'code',
-				'lists',
-				'link',
-				'table',
-				'n1ed',
-			],
-			  external_plugins: {
-				n1ed: "https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"
-			},
-			n1ed: {
-				// Volitelné: konfigurace N1ED
-				// URL k blokům / assets / Bootstrap grid
-				grid: 'bootstrap5',  // N1ED bude používat Bootstrap 5 grid
-				customBlocks: [
-				{ name: 'card', label: 'Bootstrap Card', html: '<div class="card"><div class="card-body">Card Content</div></div>' }
-				]
-			},
-			toolbar_mode: 'wrap',
-			height: 300,
-			menubar: true,
-			toolbar: 'undo redo | blocks  | ' +
-					'bold italic underline | alignleft aligncenter ' +
-					'alignright alignjustify | bullist numlist outdent indent | ' +
-					'link table | removeformat code | n1ed',
-			content_css: [
-				'//www.tiny.cloud/css/codepen.min.css',
-				'/assets/css/bootstrap.min.css',
-				{$cssFile},
-			],
+	<script>
+	tinymce.init({
+		selector: '.tiny-editor',
+		plugins: [
+			'code',
+			'lists',
+			'link',
+			'table',
+			'n1ed',
+		],
+			external_plugins: {
+			n1ed: "https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"
+		},
+		n1ed: {
+			// Volitelné: konfigurace N1ED
+			// URL k blokům / assets / Bootstrap grid
+			grid: 'bootstrap5',  // N1ED bude používat Bootstrap 5 grid
+			customBlocks: [
+			{ name: 'card', label: 'Bootstrap Card', html: '<div class="card"><div class="card-body">Card Content</div></div>' }
+			]
+		},
+		toolbar_mode: 'wrap',
+		height: 300,
+		menubar: true,
+		toolbar: 'undo redo | blocks  | ' +
+				'bold italic underline | alignleft aligncenter ' +
+				'alignright alignjustify | bullist numlist outdent indent | ' +
+				'link table | removeformat code | n1ed',
+		content_css: [
+			'//www.tiny.cloud/css/codepen.min.css',
+			'/assets/css/bootstrap.min.css',
+			{$cssFile},
+		],
+	});
+
+	document.addEventListener('DOMContentLoaded', () => {
+		const el = document.getElementById('menu-sortable');
+		if (!el) return;
+
+		new Sortable(el, {
+			animation: 150,
+			draggable: '.sortable-item',
+			filter: '.no-sort',
+			forceFallback: true,
+			fallbackTolerance: 5,
+			onEnd: () => {
+				const items = el.querySelectorAll('.sortable-item');
+
+				const order = [...items].map((item, index) => ({
+					id: item.dataset.id,
+					position: index
+				}));
+
+				fetch(el.dataset.reorderUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Requested-With': 'XMLHttpRequest'
+					},
+					body: JSON.stringify({ order })
+				});
+			}
 		});
-		</script>
+	});
+	</script>
 	{/block}
 </body>
 </html>

@@ -7,6 +7,7 @@ namespace App\Presentation\Administration;
 use App\Forms\BootstrapFormFactory;
 use App\Forms\LoginFormFactory;
 use App\Repository\ArticleRepository;
+use App\Repository\ConfigurationRepository;
 use App\Repository\GalleryRepository;
 use App\Repository\UserRepository;
 use App\Service\ImageService;
@@ -22,9 +23,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var LoginFormFactory @inject */
 	public $loginFormFactory;
-	
+
 	/** @var ArticleRepository @inject */
 	public $articleRepository;
+
+	/** @var ConfigurationRepository @inject */
+	public $configurationRepository;
 
 	/** @var GalleryRepository @inject */
 	public $galleryRepository;
@@ -75,6 +79,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'action' => 'Administration:uploadManager',
 			'icon' => 'bi bi-images',
 			'title' => 'Upload',
+			'onlyForLoggedIn' => true,
+		],
+		[
+			'action' => 'Administration:configuration',
+			'icon' => 'bi bi-sliders',
+			'title' => 'Nastavení',
 			'onlyForLoggedIn' => true,
 		],
 	];
@@ -241,12 +251,75 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->template->galleries = $galleries;
 	}
 
+	public function actionConfiguration(?string $category = null): void {
+		if (!$this->user->isLoggedIn()) {
+			$this->flashMessage('Nemáte oprávnění.', 'danger');
+			$this->redirect('Administration:default');
+		}
+
+		$categories = $this->configurationRepository->getCategories();
+		$this->template->categories = $categories;
+
+		if ($category === null) {
+			$category = array_key_first($categories);
+			$this->redirect('this', ['category' => $category]);
+		}
+
+		$this->template->currentCategory = $category;
+		$this->template->items = $this->configurationRepository->getByCategory($category);
+	}
+
 	//components
 	protected function createComponentLoginForm() {
 		return $this->loginFormFactory->create([$this, 'loginFormSubmitted']);
 	}
 
 	//Forms
+
+	public function createComponentConfigurationForm(): Form {
+		$form = BootstrapFormFactory::create('oneLine');
+
+		$category = $this->getParameter('category');
+		$items = $this->configurationRepository->getByCategory($category);
+
+		foreach ($items as $item) {
+
+			// label se jen zobrazí
+			if ($item->type === 'label') {
+				$form->addGroup($item->value_string);
+				continue;
+			}
+
+			// kontrola role
+			if ($item->access_role && !$this->user->isInRole($item->access_role)) {
+				continue;
+			}
+
+			$label = $item->description ?? $item->key;
+
+			$control = match ($item->type) {
+				'bool' => $form->addCheckbox($item->key, $label)
+					->setDefaultValue((bool) $item->value_bool),
+
+				'int' => $form->addInteger($item->key, $label)
+					->setDefaultValue($item->value_int),
+
+				'float' => $form->addText($item->key, $label)
+					->setDefaultValue($item->value_float),
+
+				default => $form->addText($item->key, $label)
+					->setDefaultValue($item->value_string),
+			};
+			$control->setHtmlAttribute('title', $item->key);
+		}
+
+		$form->addSubmit('save', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
+
+		$form->onSuccess[] = [$this, 'configurationFormSubmitted'];
+		return $form;
+	}
+
 	public function createComponentUserForm() {
 		$form = BootstrapFormFactory::create('oneLine');
 		$userId = (int) $this->getParameter('userId');
@@ -475,6 +548,24 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	}
 
 	//Form manipulation
+	public function configurationFormSubmitted(Form $form, \stdClass $values): void {
+		foreach ($values as $key => $value) {
+			if ($key === 'save') {
+				continue;
+			}
+			$this->configurationRepository->updateValue(
+				$key,
+				$value,
+				$this->user->getId()
+			);
+		}
+		$cache = new Cache($this->cacheStorage);
+		$cache->remove('app_config');
+
+		$this->flashMessage('Nastavení bylo uloženo.', 'success');
+		$this->redirect('this');
+	}
+
 	public function userFormSubmitted(Form $form, $values): void {
 		if (!$this->user->isLoggedIn()) {
 			$form->addError('Pro tuto akci musíte být přihlášeni.');
@@ -837,5 +928,23 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->galleryRepository->setGalleryCover($imageId);
 		$this->sendJson(['status' => 'ok']);
 	}
+
+	public function handleReorderMenu(): void {
+		if (!$this->isAjax()) {
+			$this->error('Invalid request');
+		}
+
+		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
+
+		if (!isset($data['order']) || !is_array($data['order'])) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+
+		$this->menuRepository->updatePositions($data['order']);
+
+		$this->sendJson(['status' => 'ok']);
+	}
+
 
 }

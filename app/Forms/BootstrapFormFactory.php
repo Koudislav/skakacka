@@ -145,11 +145,6 @@ final class BootstrapFormFactory extends DefaultFormRenderer {
 		$renderer->wrappers['control']['description'] = 'div class="form-text text-muted"';
 		$renderer->wrappers['control']['errorcontainer'] = 'div class="invalid-feedback d-block"';
 
-		// --- Automatické třídy po renderování ---
-		$form->getElementPrototype()
-			// ->addClass('')
-			->setAttribute('novalidate', true);
-
 		$form->onRender[] = function (Form $form) use ($noLabel): void {
 			foreach ($form->getControls() as $control) {
 				$control->setOption('renderLabel', false);

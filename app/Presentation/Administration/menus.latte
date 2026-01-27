@@ -1,8 +1,8 @@
 {block blockMenu}
 
-<div class="list-group shadow-sm">
+<div class="list-group shadow-sm" id="menu-sortable" data-reorder-url="{link reorderMenu!}">
 	<a n:href="Administration:menus, menuKey: '0', newMenu: 1"
-			n:class="$currentMenuKey === '0' ? active, 'list-group-item list-group-item-action'">
+			n:class="$currentMenuKey === '0' ? active, 'list-group-item list-group-item-action no-sort'">
 		{if $currentMenuKey === '0'}
 			<i class="bi bi-plus-circle"></i> Nové menu
 		{else}
@@ -19,17 +19,20 @@
 		{/foreach}
 	{else}
 		{foreach $menus as $m}
-			<a n:href="Administration:menus, menuKey: $m->menu_key, menuId: $m->id"
-					n:class="$currentMenuId === $m->id ? active, 'list-group-item list-group-item-action'">
-				<i n:class="bi, $m->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
-				{$m->label}
-			</a>
+			<div n:class="$currentMenuId === $m->id ? active, 'list-group-item list-group-item-action sortable-item d-flex justify-content-between'" data-id="{$m->id}">
+				<a n:href="Administration:menus, menuKey: $m->menu_key, menuId: $m->id" n:class="$currentMenuId === $m->id ? text-white, text-decoration-none">
+					<i n:class="bi, $m->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+					{$m->label}
+				</a>
+				<div class="btn btn-sm btn-secondary" style="cursor:grab;">
+					<i class="bi bi-arrows-move"></i>
+				</div>
+			</div>
 		{/foreach}
 	{/if}
 	{if $currentMenuKey !== '0'}
-
 		<a n:href="Administration:menus, menuKey: $currentMenuKey, newMenu: 1"
-				n:class="$presenter->getParameter('newMenu') == '1' ? active, 'list-group-item list-group-item-action'">
+				n:class="$presenter->getParameter('newMenu') == '1' ? active, 'list-group-item list-group-item-action no-sort'">
 			<i class="bi bi-plus-circle"></i> Přidat položku menu
 		</a>
 	{/if}

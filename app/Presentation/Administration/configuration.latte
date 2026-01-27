@@ -1,0 +1,17 @@
+{dump}
+{block blockMenu}
+<div class="list-group rounded shadow-sm">
+	{foreach $categories as $key => $label}
+		<a n:href="Administration:configuration category: $key"
+				n:class="$currentCategory === $key ? active, 'list-group-item list-group-item-action'">
+			{$label}
+		</a>
+	{/foreach}
+</div>
+{/block}
+{block content}
+	<h1 class="h3">Nastavení{if $currentCategory} - {$categories[$currentCategory]}{/if}</h1>
+	<hr>
+	{if $currentCategory}
+		{control configurationForm}
+	{/if}

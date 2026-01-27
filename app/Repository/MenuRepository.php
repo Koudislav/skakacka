@@ -68,6 +68,7 @@ class MenuRepository {
 			'presenter' => $this->resolvePresenter($values),
 			'action' => $this->resolveAction($values),
 			'params' => $this->resolveParams($values),
+			'position' => $this->getNextPosition($values->menu_key),
 		];
 		return $this->db->table(self::MENUS_TABLE)->insert($insert)->id;
 	}
@@ -124,6 +125,26 @@ class MenuRepository {
 			'linkType' => 'index',
 			'linkedArticleSlug' => null,
 		];
+	}
+
+	public function updatePositions(array $order): void {
+		$this->db->beginTransaction();
+
+		foreach ($order as $row) {
+			$this->db->table(self::MENUS_TABLE)
+				->where('id', (int) $row['id'])
+				->update([
+					'position' => (int) $row['position'],
+				]);
+		}
+
+		$this->db->commit();
+	}
+
+	private function getNextPosition(string $menuKey): int {
+		return (int) $this->db->table(self::MENUS_TABLE)
+			->where('menu_key', $menuKey)
+			->max('position') + 1;
 	}
 
 }
