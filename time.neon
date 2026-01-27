@@ -34,4 +34,7 @@ faze1:
 faze2:
 	26.01.23 14:45 - 16:00 - galerie - galerie na frontendu, základní zobrazení obrázků v galerii a galerii samotnych
 	26.01.23 20:00 - 21:00 - lightbox knihovna GLightbox, základní nastavení a integrace, javascripty pro prepocitavani velikosti obrazku v galerii na radek
-	26.01.24 12:15 - ??? - tvorba menu -> rozsireni o vyber galerií
+	26.01.24 12:15 - 12:45 - tvorba menu -> rozsireni o vyber galerií
+	27.01.24 09:00 - 09:30 - gallery vypis BB Code
+	27.01.24 09:30 - 10:15 - controller pro vypis galerii
+	27.01.24 11:00 - 11:30 - uploadManager

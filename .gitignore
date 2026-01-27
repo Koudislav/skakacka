@@ -2,8 +2,10 @@
 .gitattributes
 /vendor/
 /vendor
-/temp/
+/temp/**
 /temp
-/www/assets/gallery
+/www/assets/gallery/**
 !/www/assets/gallery/.gitkeep
+/www/upload/**
+!/www/upload/.gitkeep
 /www/assets/css/styles.css

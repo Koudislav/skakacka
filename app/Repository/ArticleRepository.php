@@ -16,6 +16,7 @@ class ArticleRepository {
 	public const FORBIDEN_SLUGS = [
 		'administration',
 		'gallery',
+		'upload',
 	];
 
 	public function __construct(

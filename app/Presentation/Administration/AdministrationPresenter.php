@@ -14,6 +14,9 @@ use Nette;
 use Nette\Application\UI\Form;
 use Nette\Caching\Cache;
 use Nette\Caching\Storage;
+use Nette\Utils\FileSystem;
+use Nette\Utils\Finder;
+use Nette\Utils\Strings;
 
 final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
@@ -34,6 +37,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var \App\Service\ImageService @inject */
 	public ImageService $imageService;
+
+	public const WWW_DIR = __DIR__ . '/../../../www';
+	public const UPLOAD_DIR = self::WWW_DIR . '/upload';
 
 	public const MENU = [
 		[
@@ -65,6 +71,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'title' => 'Galerie',
 			'onlyForLoggedIn' => true,
 		],
+		[
+			'action' => 'Administration:uploadManager',
+			'icon' => 'bi bi-images',
+			'title' => 'Upload',
+			'onlyForLoggedIn' => true,
+		],
 	];
 
 	public const ARTICLE_TYPES = [
@@ -83,6 +95,11 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		'index' => 'Hlavní stránka',
 		'gallery' => 'Galerie',
 	];
+
+	public function startUp() {
+		parent::startUp();
+		FileSystem::createDir(self::UPLOAD_DIR);
+	}
 
 	public function beforeRender() {
 		$this->template->menu = $this->processMenu();
@@ -153,10 +170,69 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	}
 
 	public function actionGalleries(int $galleryId = 0): void {
-		if (!$this->user->isLoggedIn()) {
+		if (!$this->getUser()->isLoggedIn()) {
 			$this->flashMessage('Nemáte oprávnění.', 'danger');
 			$this->redirect('Administration:default');
 		}
+	}
+
+	public function actionUploadManager(?string $folder = null) {
+		if ($folder === '/') {
+			$folder = null;
+		}
+		if (!$this->getUser()->isLoggedIn()) {
+			$this->flashMessage('Nemáte oprávnění.', 'danger');
+			$this->redirect('Administration:default');
+		}
+		$wwwDir = realpath(self::WWW_DIR);
+		$uploadDir = realpath(self::UPLOAD_DIR) . DIRECTORY_SEPARATOR;
+		$currentFolder = realpath($uploadDir . $folder) . DIRECTORY_SEPARATOR;
+
+		if (!str_starts_with($currentFolder, $uploadDir)) {
+			$this->flashMessage('Neplatná cesta ke složce.', 'danger');
+			$this->redirect('Administration:uploadManager', ['folder' => null]);
+		} else {
+			$relativePath = str_replace($wwwDir, '', rtrim($currentFolder, DIRECTORY_SEPARATOR));
+			$this->template->relativePath = $relativePath;
+		}
+		$dirs = Finder::findDirectories()
+			->in($currentFolder);
+
+		$dirsProcessed = [];
+		foreach ($dirs as $dir) {
+			$dirsProcessed[] = [
+				'relativePath' => str_replace(realpath(self::UPLOAD_DIR), '', rtrim($dir->getRealPath(), DIRECTORY_SEPARATOR)),
+				'name' => $dir->getBasename(),
+			];
+		}
+
+		$files = Finder::findFiles()
+			->in($currentFolder);
+
+		$filesProcessed = [];
+		foreach ($files as $file) {
+			$ext = strtolower($file->getExtension());
+			$relative = str_replace(realpath(self::WWW_DIR), '', $file->getRealPath());
+		
+			$filesProcessed[] = [
+				'relativePath' => $relative,
+				'publicPath' => $relative, // předpoklad: upload je pod www
+				'name' => $file->getBasename(),
+				'extension' => $ext,
+				'isImage' => in_array($ext, ['jpg','jpeg','png','gif','webp','svg']),
+			];
+		}
+
+		if ($folder !== null) {
+			$parentDir = dirname(rtrim($folder, '/\\'));
+			if ($parentDir === '.' || $parentDir === DIRECTORY_SEPARATOR) {
+				$parentDir = null;
+			}
+		}
+		$this->template->parentDir = $parentDir ?? null;
+
+		$this->template->dirs = $dirsProcessed;
+		$this->template->files = $filesProcessed;
 	}
 
 	public function renderGalleries(int $galleryId = 0): void {
@@ -371,6 +447,33 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		return $form;
 	}
 
+	public function createComponentCreateFolderForm(): Form {
+		$form = BootstrapFormFactory::create('inLine');
+		$form->addHidden('folder')
+			->setDefaultValue($this->getParameter('folder') ?? '');
+		$form->addText('folderName', 'Název nové složky:')
+			->setHtmlAttribute('placeholder', 'Název nové složky')
+			->setRequired('Vyplňte název složky.');
+		$form->addSubmit('submit', 'Vytvořit novou složku')
+			->setHtmlAttribute('class', 'btn btn-primary');
+		$form->onSuccess[] = [$this, 'createFolderFormSubmitted'];
+		return $form;
+	}
+
+	public function createComponentUploadForm(): Form {
+		$form = BootstrapFormFactory::create('inLine');
+		$form->addHidden('folder')
+			->setDefaultValue($this->getParameter('folder') ?? '');
+		$form->addGroup();
+		$form->addUpload('file', 'Vyberte soubor k nahrání:')
+			->setRequired('Vyberte soubor k nahrání.');
+		$form->addGroup();
+		$form->addSubmit('submit', 'Nahrát soubor')
+			->setHtmlAttribute('class', 'btn btn-primary');
+		$form->onSuccess[] = [$this, 'uploadFormSubmitted'];
+		return $form;
+	}
+
 	//Form manipulation
 	public function userFormSubmitted(Form $form, $values): void {
 		if (!$this->user->isLoggedIn()) {
@@ -424,7 +527,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		if ($articleId !== 0) {
 			//edit
-			$update = $this->articleRepository->updateArticle($articleId, $values, $this->user->getId());
+			$update = $this->articleRepository->updateArticle($articleId, $values, $this->getUser()->getId());
 			if (!$update) {
 				$this->flashMessage('Nebyly provedeny žádné změny.', 'danger');
 			} else {
@@ -486,6 +589,54 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			$this->flashMessage('Nemáte oprávnění.', 'danger');
 			$this->redirect('Administration:default');
 		}
+	}
+
+	public function createFolderFormSubmitted(Form $form, \stdClass $values): void {
+		if (!$this->getUser()->isLoggedIn()) {
+			$this->flashMessage('Nemáte oprávnění.', 'danger');
+			$this->redirect('Administration:default');
+		}
+
+		$uploadDir = realpath(self::UPLOAD_DIR) . DIRECTORY_SEPARATOR;
+		$currentFolder = $values->folder ? realpath($uploadDir . $values->folder) : $uploadDir;
+
+		// Webalize název složky
+		$nameWeb = Strings::webalize($values->folderName);
+
+		$newFolder = $currentFolder . DIRECTORY_SEPARATOR . $nameWeb;
+		if (!is_dir($newFolder)) {
+			FileSystem::createDir($newFolder, 0755);
+			$this->flashMessage('Složka vytvořena.', 'success');
+		} else {
+			$this->flashMessage('Složka již existuje.', 'warning');
+		}
+
+		$this->redirect('this', ['folder' => $values->folder]);
+	}
+
+	public function uploadFormSubmitted(Form $form, array $values): void {
+		$uploadDir = realpath(self::UPLOAD_DIR) . DIRECTORY_SEPARATOR;
+		$currentFolder = $values['folder'] ? realpath($uploadDir . $values['folder']) : $uploadDir;
+
+		$file = $values['file'];
+
+		if ($file->isOk()) {
+			$name = $file->getName();
+			$ext = pathinfo($name, PATHINFO_EXTENSION);
+			$baseName = pathinfo($name, PATHINFO_FILENAME);
+
+			// Webalize jen hlavní část názvu, přípona zůstane
+			$safeName = Strings::webalize($baseName) . ($ext ? '.' . $ext : '');
+
+			$filePath = $currentFolder . DIRECTORY_SEPARATOR . $safeName;
+			$file->move($filePath);
+
+			$this->flashMessage('Soubor nahrán.', 'success');
+		} else {
+			$this->flashMessage('Chyba při nahrávání souboru.', 'danger');
+		}
+
+		$this->redirect('this', ['folder' => $values['folder']]);
 	}
 
 	public function renderGalleryImages(int $galleryId): void {

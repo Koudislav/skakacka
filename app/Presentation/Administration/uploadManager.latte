@@ -1,0 +1,148 @@
+{block content}
+<style>
+.file-card {
+	width: 160px;
+	height: 160px;
+	border-radius: 8px;
+	border: 1px solid #ddd;
+	position: relative;
+	background-size: cover;
+	background-position: center;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 8px;
+}
+.file-icon {
+	font-size: 48px;
+	text-align: center;
+	margin-top: 20px;
+}
+.file-name {
+	font-size: 13px;
+	text-align: center;
+	word-break: break-all;
+}
+.copy-btn {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	font-size: 14px;
+	cursor: pointer;
+	border-radius: 4px;
+	padding: 2px 6px;
+}
+</style>
+
+<h2>Upload Manager</h2>
+
+{if $relativePath !== '/upload'}
+	<div style="margin-bottom: 15px;">
+		<a class="btn btn-secondary" n:href="Administration:uploadManager folder: $parentDir">⬅ Zpět</a>
+	</div>
+{/if}
+
+{* Breadcrumb navigace *}
+<div style="margin-bottom: 20px;">
+	<strong>Cesta:</strong>
+	{var $crumbs = explode('/', trim($relativePath, '/'))}
+	<a n:href="Administration:uploadManager folder: null">Upload</a>
+	{var $pathAcc = ''}
+	{foreach $crumbs as $key => $crumb}
+		{continueIf $key === 0}
+		{php $pathAcc .= '/' . $crumb}
+		&nbsp;/&nbsp;<a n:href="Administration:uploadManager folder: $pathAcc">{$crumb}</a>
+	{/foreach}
+</div>
+
+{* Vytvořit novou složku *}
+<div>
+	{control createFolderForm}
+</div>
+
+{* Upload souboru *}
+<div>
+	{control uploadForm}
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 15px;">
+
+	{* Složky *}
+	{foreach $dirs as $dir}
+		<a n:href="Administration:uploadManager folder: $dir['relativePath']">
+			<div class="file-card" style="background-color: #f0f8ff;">
+				<div class="file-icon">
+					<i class="bi bi-folder-fill text-warning"></i>
+				</div>
+				<div class="file-name">
+					{$dir['name']}
+				</div>
+			</div>
+		</a>
+	{/foreach}
+
+	{* Soubory *}
+	{foreach $files as $file}
+	{define fileIcon $ext}
+		{if in_array($ext, ['pdf'])}<i class="bi bi-file-earmark-pdf text-danger"></i>
+		{elseif in_array($ext, ['zip','rar','7z'])}<i class="bi bi-file-earmark-zip"></i>
+		{elseif in_array($ext, ['doc','docx'])}<i class="bi bi-file-earmark-word text-primary"></i>
+		{elseif in_array($ext, ['xls','xlsx'])}<i class="bi bi-file-earmark-excel text-success"></i>
+		{elseif in_array($ext, ['mp4','avi','mov'])}<i class="bi bi-file-earmark-play"></i>
+		{else}<i class="bi bi-file-earmark"></i>
+		{/if}
+	{/define}
+		<a class="file-card-link text-decoration-none" href="{$file['publicPath']|noescape}" download style="color:inherit;">
+			<div class="file-card"
+				{if $file['isImage']}
+					style="background-image:url('{$file['publicPath']|noescape}')"
+				{/if}
+			>
+
+				<div class="btn btn-sm btn-secondary copy-btn"
+					onclick="copyPath(this, '{$file['relativePath']|noescape}', event);"
+					title="Kopírovat cestu">
+					<i class="bi bi-clipboard"></i>
+				</div>
+
+				{if !$file['isImage']}
+					<div class="file-icon">
+						{include fileIcon $file['extension']}
+					</div>
+				{/if}
+
+				<div class="file-name">
+					{$file['name']}
+				</div>
+
+			</div>
+		</a>
+	{/foreach}
+
+</div>
+
+<script>
+function copyPath(btn, path, event) {
+	event.stopPropagation();   // zastaví šíření události na <a>
+	event.preventDefault();    // zabráni defaultní akci
+
+	navigator.clipboard.writeText(path)
+		.then(() => {
+			// změna ikony na “ok” pro 1.5s
+			const icon = btn.querySelector('i');
+			const originalClass = icon.className;
+			icon.className = 'bi bi-check-lg'; // zelená ikona "ok"
+			btn.classList.add('btn-success');
+			btn.classList.remove('btn-secondary');
+
+			setTimeout(() => {
+				icon.className = originalClass; // vrátí původní clipboard
+				btn.classList.remove('btn-success');
+				btn.classList.add('btn-secondary');
+			}, 1500);
+		})
+		.catch(err => {
+			console.error('Chyba při kopírování:', err);
+		});
+}
+</script>
