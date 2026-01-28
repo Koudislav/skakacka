@@ -18,23 +18,17 @@
 		&:hover {
 			color: @primary-orange;
 		}
-	}
-	.dropdown-toggle::after {
-		display: none;
-	}
-	.dropdown-item {
-		&.active, &:active {
-			background-color: @primary-orange;
-			color: #fff;
-		}
 		&.dropdown-toggle {
 			position: relative;
-			padding-right: 2rem;
+			padding-right: 1.5rem;
+			&::after {
+				display: none;
+			}
 			&::before {
 				content: "\F279"; /* Bootstrap Icons chevron-right */
 				font-family: "Bootstrap-icons";
 				position: absolute;
-				right: 0.75rem;
+				right: 0.25rem;
 				top: 50%;
 				transform: translateY(-40%);
 				font-size: 0.85rem;
@@ -50,9 +44,21 @@
 			}
 		}
 	}
-	.dropdown:hover {
+	.dropdown {
 		.dropdown-menu {
-			display: block;
+			border-color: @primary-orange;
+			background-color: fade(lighten(@primary-orange, 20%), 95%);
+		}
+		&:hover {
+			.dropdown-menu {
+				display: block;
+			}
+		}
+		.dropdown-item {
+			&.active, &:active {
+				background-color: @primary-orange;
+				color: #fff;
+			}
 		}
 	}
 }

@@ -3,17 +3,18 @@
 	{foreach $photos as $photo}
 		{php $usedGalleryIds[] = $photo->gallery_id}
 		<div class="photo-wrap">
-			<a href="/{$photo->path_big|noescape}" class="glightbox glightbox-gallery-{$galleryId}">
+			<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-trapez-{$galleryId}" data-description="{$photo->description}">
 				<div class="photo p{$photo->id}" style="background-image: url('/{$photo->path_big|noescape}');"></div>
 			</a>
 		</div>
 	{/foreach}
 </div>
-
-{foreach $allPhotos as $photo}
-	{continueIf in_array($photo->gallery_id, $usedGalleryIds)}
-	<a href="/{$photo->path_big|noescape}" class="glightbox glightbox-gallery-{$galleryId}"></a>
-{/foreach}
+<div class="trapezoid-rest-gallery">
+	{foreach $allPhotos as $photo}
+		{continueIf in_array($photo->gallery_id, $usedGalleryIds)}
+		<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-trapez-{$galleryId}" data-description="{$photo->description}"></a>
+	{/foreach}
+</div>
 
 {* Dynamické clip-path: rozprostře horní hranu rovnoměrně podle počtu fotek *}
 <style>

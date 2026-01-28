@@ -22,7 +22,7 @@
 	{* aktivni menu, vyber polozek *}
 		{foreach $menus as $m}
 			<div n:class="$currentMenuId === $m['item']->id ? active, 'list-group-item list-group-item-action sortable-item'" data-id="{$m['item']->id}">
-				<div class="d-flex justify-content-between">
+				<div class="d-flex justify-content-between align-items-start">
 					<a n:href="Administration:menus, menuKey: $m['item']->menu_key, menuId: $m['item']->id" n:class="$currentMenuId === $m['item']->id ? text-white, text-decoration-none">
 						<i n:class="bi, $m['item']->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
 						{$m['item']->label}
@@ -36,7 +36,7 @@
 				<div class="menu-children sortable-children" data-parent-id="{$m['item']->id}" data-reorder-url="{link reorderMenu!}">
 					{foreach $m['children'] as $child}
 						<div n:class="$currentMenuId === $child->id ? active, 'list-group-item ps-2 sortable-child'" data-id="{$child->id}">
-							<div class="d-flex justify-content-between">
+							<div class="d-flex justify-content-between align-items-start">
 								<a n:href="Administration:menus, menuKey: $child->menu_key, menuId: $child->id" n:class="$currentMenuId === $child->id ? text-white, text-decoration-none">
 									<i n:class="bi, $child->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
 									{$child->label}
