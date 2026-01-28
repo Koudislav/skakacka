@@ -15,22 +15,19 @@
 							<span n:class="$menuItem['isActive'] ? active, nav-link, dropdown-toggle" id="navbarDropdown{$menuItem['label']}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 								{$menuItem['label']}
 							</span>
-							<ul class="dropdown-menu mt-0" aria-labelledby="navbarDropdown{$menuItem['label']}">
+							<div class="dropdown-menu mt-0" aria-labelledby="navbarDropdown{$menuItem['label']}">
 								{foreach $menuItem['children'] as $childItem}
-									<li>
-										<a n:class="$childItem['isActive'] ? active, dropdown-item"
-												href="{$childItem['link']}">
-											{$childItem['label']}
-										</a>
-									</li>
+									<a n:class="$childItem['isActive'] ? active, dropdown-item"
+											href="{$childItem['link']}">
+										{$childItem['label']}
+									</a>
 								{/foreach}
-							</ul>
+							</div>
 						</li>
 					{/if}
 					{else}
 					<li class="nav-item">
-						<a n:class="$menuItem['isActive'] ? active, nav-link"
-								href="{$menuItem['link']}">
+						<a n:class="$menuItem['isActive'] ? active, nav-link" href="{$menuItem['link']}">
 							{$menuItem['label']}
 						</a>
 					</li>

@@ -59,6 +59,9 @@
 				background-color: @primary-orange;
 				color: #fff;
 			}
+			&:not(:last-child) {
+				border-bottom: 1px solid @primary-orange;
+			}
 		}
 	}
 }
@@ -191,7 +194,7 @@
 			}
 		}
 	}
-	@media (max-width: 768px) {
+	@media (max-width: @break-min-md) {
 		gap: 5px;
 		.photo-wrap {
 			height: 220px;
