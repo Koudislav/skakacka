@@ -9,3 +9,4 @@
 /www/upload/**
 !/www/upload/.gitkeep
 /www/assets/css/styles.css
+/www/sitemap.xml

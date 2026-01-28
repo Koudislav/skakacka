@@ -10,6 +10,7 @@ services:
 	config: App\Model\Config(@cacheStorage)
 
 	- App\Service\ImageService(%wwwDir%)
+	- App\Service\SitemapGenerator(%wwwDir%)
 
 search:
 	-	in: %appDir%

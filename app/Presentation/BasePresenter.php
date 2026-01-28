@@ -8,6 +8,7 @@ use Nette;
 use App\Model\Config;
 use App\Model\LessCompiler;
 use App\Repository\MenuRepository;
+use App\Service\SitemapGenerator;
 use Nette\Application\UI\Form;
 
 class BasePresenter extends Nette\Application\UI\Presenter {
@@ -21,12 +22,18 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	/** @var MenuRepository @inject */
 	public $menuRepository;
 
+	/** @var SitemapGenerator @inject */
+	public $sitemapGenerator;
+
 	public function startUp() {
 		parent::startup();
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
 		$this->template->config = $this->config;
 		// $this->template->actualLink = $this->link('this');
+		if ($this->sitemapGenerator->needsRegeneration()) {
+			$this->sitemapGenerator->generate();
+		}
 	}
 
 	public function beforeRender() {
