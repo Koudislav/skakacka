@@ -1,7 +1,6 @@
 {block content}
 
 <h1>Galerie</h1>
-{dump}
 <div class="row gx-3 gy-3">
 	{foreach $galleries as $gallery}
 		{continueIf empty($covers[$gallery->id])}

@@ -104,6 +104,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		'article' => 'Odkaz na článek',
 		'index' => 'Hlavní stránka',
 		'gallery' => 'Galerie',
+		'parent' => 'Nadřazená položka (bez odkazu)',
 	];
 
 	public function startUp() {
@@ -175,7 +176,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		if ($menuKey === '0') {
 			$this->template->menus = $this->menuRepository->findKeys();
 		} else {
-			$this->template->menus = $this->menuRepository->findByKey($menuKey);
+			$this->template->menus = $this->menuRepository->findByKeyStructured($menuKey);
 		}
 	}
 
@@ -440,6 +441,11 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			$menuKeyInput->setRequired('Zadejte název menu.');
 		}
 
+		$parents = $this->menuRepository->getRootItemsForSelect($menuKey);
+
+		$form->addSelect('parent_id', 'Nadřazená položka:', $parents)
+			->setPrompt('— hlavní položka —');
+
 		$form->addText('label', 'Popisek položky:')
 			->setRequired('Zadejte popisek položky menu.');
 
@@ -474,6 +480,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				'is_active' => $menuItem['db']->is_active == 1,
 				'linkType' => $menuItem['processed']['linkType'],
 				'linkedArticleSlug' => $menuItem['processed']['linkedArticleSlug'],
+				'parent_id' => $menuItem['db']->parent_id,
 			]);
 		}
 

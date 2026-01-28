@@ -11,6 +11,7 @@
 	</a>
 
 	{if $currentMenuKey === '0'}
+	{* zakladni menu s vyberem menus *}
 		{foreach $menus as $m}
 			<a n:href="Administration:menus, menuKey: $m, newMenu: 1"
 					n:class="$currentMenuKey === $m ? active, 'list-group-item list-group-item-action'">
@@ -18,14 +19,34 @@
 			</a>
 		{/foreach}
 	{else}
+	{* aktivni menu, vyber polozek *}
 		{foreach $menus as $m}
-			<div n:class="$currentMenuId === $m->id ? active, 'list-group-item list-group-item-action sortable-item d-flex justify-content-between'" data-id="{$m->id}">
-				<a n:href="Administration:menus, menuKey: $m->menu_key, menuId: $m->id" n:class="$currentMenuId === $m->id ? text-white, text-decoration-none">
-					<i n:class="bi, $m->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
-					{$m->label}
-				</a>
-				<div class="btn btn-sm btn-secondary" style="cursor:grab;">
-					<i class="bi bi-arrows-move"></i>
+			<div n:class="$currentMenuId === $m['item']->id ? active, 'list-group-item list-group-item-action sortable-item'" data-id="{$m['item']->id}">
+				<div class="d-flex justify-content-between">
+					<a n:href="Administration:menus, menuKey: $m['item']->menu_key, menuId: $m['item']->id" n:class="$currentMenuId === $m['item']->id ? text-white, text-decoration-none">
+						<i n:class="bi, $m['item']->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+						{$m['item']->label}
+					</a>
+					<div class="btn btn-sm btn-secondary parent-handle" style="cursor:grab;">
+						<i class="bi bi-arrows-move"></i>
+					</div>
+				</div>
+
+				{* CHILD SORTABLE KONTEJNER *}
+				<div class="menu-children sortable-children" data-parent-id="{$m['item']->id}" data-reorder-url="{link reorderMenu!}">
+					{foreach $m['children'] as $child}
+						<div n:class="$currentMenuId === $child->id ? active, 'list-group-item ps-2 sortable-child'" data-id="{$child->id}">
+							<div class="d-flex justify-content-between">
+								<a n:href="Administration:menus, menuKey: $child->menu_key, menuId: $child->id" n:class="$currentMenuId === $child->id ? text-white, text-decoration-none">
+									<i n:class="bi, $child->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+									{$child->label}
+								</a>
+								<div class="btn btn-sm btn-secondary child-handle" style="cursor:grab;">
+									<i class="bi bi-arrows-move"></i>
+								</div>
+							</div>
+						</div>
+					{/foreach}
 				</div>
 			</div>
 		{/foreach}
@@ -52,3 +73,68 @@
 </h5>
 <hr>
 {control menuForm}
+
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const el = document.getElementById('menu-sortable');
+		if (!el) return;
+
+		new Sortable(el, {
+			animation: 150,
+			handle: '.parent-handle',
+			draggable: '.sortable-item',
+			filter: '.no-sort',
+			forceFallback: true,
+			fallbackTolerance: 5,
+			extended_valid_elements: 'span[class]',
+			onEnd: () => {
+				const items = el.querySelectorAll('.sortable-item');
+
+				const order = [...items].map((item, index) => ({
+					id: item.dataset.id,
+					position: index
+				}));
+
+				fetch(el.dataset.reorderUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Requested-With': 'XMLHttpRequest'
+					},
+					body: JSON.stringify({ order })
+				});
+			}
+		});
+
+		const childContainers = document.querySelectorAll('.sortable-children');
+		childContainers.forEach(container => {
+			new Sortable(container, {
+				animation: 150,
+				handle: '.child-handle',
+
+				draggable: '.sortable-child',
+				forceFallback: true,
+				fallbackTolerance: 5,
+				extended_valid_elements: 'span[class]',
+				onEnd: () => {
+					const items = container.querySelectorAll('.sortable-child');
+
+					const order = [...items].map((item, index) => ({
+						id: item.dataset.id,
+						position: index,
+						parentId: container.dataset.parentId
+					}));
+
+					fetch(container.dataset.reorderUrl, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-Requested-With': 'XMLHttpRequest'
+						},
+						body: JSON.stringify({ order })
+					});
+				}
+			});
+		});
+	});
+</script>

@@ -26,15 +26,30 @@ class MenuRepository {
 			->fetchPairs('menu_key', 'menu_key');
 	}
 
-	public function findByKey(string $menuKey, bool $onlyActive = false): array {
-		$query = $this->db->table('menus')
+	public function findByKeyStructured(string $menuKey): array {
+		$items = $this->db->table('menus')
 			->where('menu_key', $menuKey)
-			->order('position ASC');
-		if ($onlyActive) {
-			$query->where('is_active', 1);
+			->order('position')
+			->fetchAll();
+
+		$tree = [];
+		foreach ($items as $item) {
+			if ($item->parent_id === null) {
+				$tree[$item->id] = [
+					'item' => $item,
+					'children' => [],
+				];
+			}
 		}
-		return $query->fetchAll();
+
+		foreach ($items as $item) {
+			if ($item->parent_id !== null && isset($tree[$item->parent_id])) {
+				$tree[$item->parent_id]['children'][] = $item;
+			}
+		}
+		return $tree;
 	}
+
 
 	public function getById(int $id, ?string $menuKey = null): array {
 		$query = $this->db->table(self::MENUS_TABLE);
@@ -69,6 +84,7 @@ class MenuRepository {
 			'action' => $this->resolveAction($values),
 			'params' => $this->resolveParams($values),
 			'position' => $this->getNextPosition($values->menu_key),
+			'parent_id' => $values->parent_id ?: null,
 		];
 		return $this->db->table(self::MENUS_TABLE)->insert($insert)->id;
 	}
@@ -80,14 +96,16 @@ class MenuRepository {
 			'presenter' => $this->resolvePresenter($values),
 			'action' => $this->resolveAction($values),
 			'params' => $this->resolveParams($values),
+			'parent_id' => $values->parent_id ?: null,
 		];
 		$this->db->table(self::MENUS_TABLE)->where('id', $id)->update($update);
 	}
 
-	public function resolvePresenter(\stdClass $values): string {
+	public function resolvePresenter(\stdClass $values): ?string {
 		return match ($values->linkType) {
 			'article' => 'Article',
 			'gallery' => 'Gallery',
+			'parent' => null,
 			default => 'Home',
 		};
 	}
@@ -115,16 +133,18 @@ class MenuRepository {
 	}
 
 	public function backProcessForForm(ActiveRow $row): array {
+		$basic = ['linkedArticleSlug' => null];
+
+		if ($row->presenter === null) {
+			return ['linkType' => 'parent'] + $basic;
+		}
 		if ($row->presenter === 'Article' && $row->action === 'default') {
 			return [
 				'linkType' => 'article',
 				'linkedArticleSlug' => json_decode((string) $row->params, true)['slug'] ?? null,
 			];
 		}
-		return [
-			'linkType' => 'index',
-			'linkedArticleSlug' => null,
-		];
+		return ['linkType' => 'index'] + $basic;
 	}
 
 	public function updatePositions(array $order): void {
@@ -145,6 +165,18 @@ class MenuRepository {
 		return (int) $this->db->table(self::MENUS_TABLE)
 			->where('menu_key', $menuKey)
 			->max('position') + 1;
+	}
+
+	public function getRootItemsForSelect(string $menuKey, ?int $excludeId = null): array {
+		$q = $this->db->table('menus')
+			->where('menu_key', $menuKey)
+			->where('parent_id IS NULL')
+			->where('presenter', null);
+
+		if ($excludeId) {
+			$q->where('id != ?', $excludeId);
+		}
+		return $q->fetchPairs('id', 'label');
 	}
 
 }

@@ -76,38 +76,9 @@
 		content_css: [
 			'//www.tiny.cloud/css/codepen.min.css',
 			'/assets/css/bootstrap.min.css',
+			'/assets/fonts/bootstrap-icons-1.11.0/bootstrap-icons.min.css',
 			{$cssFile},
 		],
-	});
-
-	document.addEventListener('DOMContentLoaded', () => {
-		const el = document.getElementById('menu-sortable');
-		if (!el) return;
-
-		new Sortable(el, {
-			animation: 150,
-			draggable: '.sortable-item',
-			filter: '.no-sort',
-			forceFallback: true,
-			fallbackTolerance: 5,
-			onEnd: () => {
-				const items = el.querySelectorAll('.sortable-item');
-
-				const order = [...items].map((item, index) => ({
-					id: item.dataset.id,
-					position: index
-				}));
-
-				fetch(el.dataset.reorderUrl, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'X-Requested-With': 'XMLHttpRequest'
-					},
-					body: JSON.stringify({ order })
-				});
-			}
-		});
 	});
 	</script>
 	{/block}

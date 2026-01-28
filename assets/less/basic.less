@@ -15,6 +15,45 @@
 			color: @primary-orange;
 			font-weight: bold;
 		}
+		&:hover {
+			color: @primary-orange;
+		}
+	}
+	.dropdown-toggle::after {
+		display: none;
+	}
+	.dropdown-item {
+		&.active, &:active {
+			background-color: @primary-orange;
+			color: #fff;
+		}
+		&.dropdown-toggle {
+			position: relative;
+			padding-right: 2rem;
+			&::before {
+				content: "\F279"; /* Bootstrap Icons chevron-right */
+				font-family: "Bootstrap-icons";
+				position: absolute;
+				right: 0.75rem;
+				top: 50%;
+				transform: translateY(-40%);
+				font-size: 0.85rem;
+				opacity: 0.6;
+				transition: transform .2s ease, opacity .2s ease;
+			}
+			&:hover::before {
+				transform: translateY(-50%);
+				opacity: 1;
+			}
+			.show::before {
+				transform: translateY(-10%) rotate(90deg);
+			}
+		}
+	}
+	.dropdown:hover {
+		.dropdown-menu {
+			display: block;
+		}
 	}
 }
 .color-orange-primary {

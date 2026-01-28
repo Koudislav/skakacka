@@ -26,7 +26,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
 		$this->template->config = $this->config;
-		$this->template->actualLink = $this->link('this');
+		// $this->template->actualLink = $this->link('this');
 	}
 
 	public function beforeRender() {
@@ -42,15 +42,57 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	private function processNavbarMenu(): array {
 		$menu = [];
-		$menuItems = $this->menuRepository->findByKey('main_horizontal', true);
+		$menuItems = $this->menuRepository->findByKeyStructured('main_horizontal', true);
 		foreach ($menuItems as $item) {
-			$menu[] = [
-				'label' => $item->label,
-				'link' => $this->link($item->presenter . ':' . $item->action, $item->params ? json_decode($item->params, true) : []),
-			];
+			if (empty($item['item']->presenter)) {
+				$children = [];
+				$hasActiveChild = false;
+				foreach ($item['children'] as $child) {
+					$childItem = $this->processNavbarMenuItem(['item' => $child]);
+					if ($childItem['isActive']) {
+						$hasActiveChild = true;
+					}
+					$children[] = $childItem;
+				}
+				$menu[] = [
+					'label' => $item['item']->label,
+					'isParent' => true,
+					'children' => $children,
+					'isActive' => $hasActiveChild,
+				];
+
+			} else {
+				$menu[] = $this->processNavbarMenuItem($item);
+			}
 		}
 
 		return $menu;
+	}
+
+	public function processNavbarMenuItem(array $item): array {
+		$currentPresenter = $this->getName();
+		$currentParams = $this->getParameters();
+		$itemParams = $item['item']->params ? json_decode($item['item']->params, true) : [];
+
+		$isActive = false;
+		if ($currentPresenter === $item['item']->presenter) {
+			if ($currentPresenter === 'Article' && !empty($currentParams['slug'])) {
+				if ($currentParams['slug'] ?? null === ($itemParams['slug'] ?? null)) {
+					if (isset($itemParams['slug']) && $currentParams['slug'] === $itemParams['slug']) {
+						$isActive = true;
+					}
+				}
+			}
+			if ($currentPresenter === 'Gallery') {
+				$isActive = true;
+			}
+		}
+		return [
+			'label' => $item['item']->label,
+			'link' => $this->link($item['item']->presenter . ':' . $item['item']->action, $itemParams),
+			'isParent' => false,
+			'isActive' => $isActive,
+		];
 	}
 
 }
