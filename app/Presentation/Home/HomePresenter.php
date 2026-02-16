@@ -27,6 +27,9 @@ final class HomePresenter extends \App\Presentation\BasePresenter {
 			$this->template->article = $article;
 			break;
 		}
+		$this->seo->schemaType = 'WebSite';
+		$this->template->seo = $this->seo;
+		$this->seo->breadcrumbs = [$this->homeString => $this->link('//Home:default')];
 	}
 
 }

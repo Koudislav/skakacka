@@ -1,0 +1,27 @@
+<div class="photo-row my-3">
+	{var $randomKey = rand(1000, 9999)}
+	{var $usedGalleryIds = []}
+	{foreach $photos as $photo}
+		{php $usedGalleryIds[] = $photo->gallery_id}
+		<div class="photo-wrap rand-{$randomKey}">
+			<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-{$galleryId}-{$randomKey}" data-description="{$photo->description}">
+				<div class="photo" style="background-image: url('/{$photo->path_big|noescape}');"></div>
+			</a>
+		</div>
+	{/foreach}
+</div>
+
+{include 'restGallery.latte' photos => $allPhotos, usedGalleryIds => $usedGalleryIds, galleryId => $galleryId, randomKey => $randomKey}
+
+{if $height}
+	<style>
+		.photo-row>.photo-wrap.rand-{$randomKey} {
+			height: {$height}px;
+		}
+		@media (max-width: 768px) {
+			.photo-row>.photo-wrap.rand-{$randomKey} {
+				height: {$height/2}px;
+			}
+		}
+	</style>
+{/if}

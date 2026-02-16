@@ -7,6 +7,7 @@ namespace App\Presentation;
 use Nette;
 use App\Model\Config;
 use App\Model\LessCompiler;
+use App\Model\Seo\SeoData;
 use App\Repository\MenuRepository;
 use App\Service\SitemapGenerator;
 use Nette\Application\UI\Form;
@@ -25,15 +26,21 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	/** @var SitemapGenerator @inject */
 	public $sitemapGenerator;
 
+	public SeoData $seo;
+
+	public string $homeString = 'home';
+
 	public function startUp() {
 		parent::startup();
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
 		$this->template->config = $this->config;
+		$this->template->recaptchaPublic = $this->config['recaptcha_public'];
 		// $this->template->actualLink = $this->link('this');
 		if ($this->sitemapGenerator->needsRegeneration()) {
 			$this->sitemapGenerator->generate();
 		}
+		$this->seoData();
 	}
 
 	public function beforeRender() {
@@ -72,6 +79,14 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 				$menu[] = $this->processNavbarMenuItem($item);
 			}
 		}
+		if ($this->getUser()->isLoggedIn()) {
+			$menu[] = [
+				'label' => 'Admin',
+				'link' => $this->link('Administration:default'),
+				'isParent' => false,
+				'isActive' => false,
+			];
+		}
 
 		return $menu;
 	}
@@ -100,6 +115,18 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			'isParent' => false,
 			'isActive' => $isActive,
 		];
+	}
+
+	public function seoData(): void {
+		$this->seo = new SeoData(
+			title: $this->config['seo_default_title'],
+			ogTitle: $this->config['seo_default_title_og'] ?: $this->config['seo_default_title'],
+			description: $this->config['seo_default_description'],
+			ogDescription: $this->config['seo_default_description_og'] ?: $this->config['seo_default_description'],
+			ogImage: $this->config['seo_default_og_image'],
+			canonical: $this->link('//this', []),
+		);
+		$this->template->seo = $this->seo;
 	}
 
 }

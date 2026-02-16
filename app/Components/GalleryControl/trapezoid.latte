@@ -1,27 +1,54 @@
-<div class="photo-row-trapezoid my-3">
-	{var $usedGalleryIds = []}
-	{foreach $photos as $photo}
-		{php $usedGalleryIds[] = $photo->gallery_id}
-		<div class="photo-wrap">
-			<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-trapez-{$galleryId}" data-description="{$photo->description}">
-				<div class="photo p{$photo->id}" style="background-image: url('/{$photo->path_big|noescape}');"></div>
-			</a>
+<div class="position-relative pt-4">
+	<div class="photo-row-trapezoid my-3">
+		{var $randomKey = rand(1000, 9999)}
+		{var $usedGalleryIds = []}
+		{foreach $photos as $photo}
+			{php $usedGalleryIds[] = $photo->gallery_id}
+			<div class="photo-wrap" n:attr="style: $height ? 'height: '. $height . 'px;' : null">
+				<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-{$galleryId}-{$randomKey}" data-description="{$photo->description}">
+					<div class="photo p{$photo->id} rand-{$randomKey}" style="background-image: url('/{$photo->path_big|noescape}');"></div>
+				</a>
+			</div>
+		{/foreach}
+	</div>
+
+	{include 'restGallery.latte' photos => $allPhotos, usedGalleryIds => $usedGalleryIds, galleryId => $galleryId, randomKey => $randomKey}
+
+	{if !empty($top) || !empty($second)}
+		<div class="header-overlay position-absolute top-0 text-center w-100">
+			<div class="h1">{$top}</div>
+			<span n:class="empty($toLeft) ? float-end : float-start, color-orange-primary, fw-bold" style="font-size: clamp(1rem, 5vw, 4rem);">{$second}</span>
 		</div>
-	{/foreach}
-</div>
-<div class="trapezoid-rest-gallery">
-	{foreach $allPhotos as $photo}
-		{continueIf in_array($photo->gallery_id, $usedGalleryIds)}
-		<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-trapez-{$galleryId}" data-description="{$photo->description}"></a>
-	{/foreach}
+	{/if}
 </div>
 
 {* Dynamické clip-path: rozprostře horní hranu rovnoměrně podle počtu fotek *}
 <style>
-{foreach $photos as $i => $photo}
-	{var $total = count($photos)}
-	{var $top1 = round(($i) * 60 / $total, 2)}
-	{var $top2 = round(($i+1) * 60 / $total, 2)}
-	.p{$photo->id} { clip-path: polygon(0 {$top1}%, 100% {$top2}%, 100% 100%, 0 100%); }
-{/foreach}
+{if !empty($toLeft)}
+	{foreach $photos as $i => $photo}
+		{var $total = count($photos)}
+		{var $top1 = round((($total - ($i + 1)) * 60) / $total, 2)}
+		{var $top2 = round((($total - $i) * 60) / $total, 2)}
+		.p{$photo->id}.rand-{$randomKey} { 
+			clip-path: polygon(0 {$top2}%, 100% {$top1}%, 100% 100%, 0 100%);
+		}
+	{/foreach}
+{else}
+	{foreach $photos as $i => $photo}
+		{var $total = count($photos)}
+		{var $top1 = round(($i) * 60 / $total, 2)}
+		{var $top2 = round(($i+1) * 60 / $total, 2)}
+		.p{$photo->id}.rand-{$randomKey} { clip-path: polygon(0 {$top1}%, 100% {$top2}%, 100% 100%, 0 100%); }
+	{/foreach}
+{/if}
+{if $height}
+	.photo-row-trapezoid>.photo-wrap.rand-{$randomKey} {
+		height: {$height}px;
+	}
+	@media (max-width: 768px) {
+		.photo-row-trapezoid>.photo-wrap.rand-{$randomKey} {
+			height: {$height/2}px;
+		}
+	}
+{/if}
 </style>

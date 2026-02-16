@@ -29,5 +29,46 @@
 		© {date('Y')} <a href="https://jirikodys.cz" target="_blank">jirikodys.cz</a>
 	</footer>
 	{include '@bodyScripts.latte'}
+
+	{block scripts}
+	<script>
+		// reCaptcha v3 for contact form
+		document.addEventListener('DOMContentLoaded', function () {
+
+			// pokud není žádný recaptchaToken input, neřešíme
+			if (document.querySelectorAll('input[name="recaptchaToken"]').length === 0) {
+				return;
+			}
+			const recaptchaKey = {$recaptchaPublic};
+			// dynamicky načti script
+			const script = document.createElement('script');
+			script.src = 'https://www.google.com/recaptcha/api.js?render=' + recaptchaKey;
+			script.async = true;
+			script.defer = true;
+			document.head.appendChild(script);
+
+			// Po načtení scriptu přidej submit handlery
+			script.onload = function () {
+				document.querySelectorAll('form[data-recaptcha]').forEach(form => {
+
+					form.addEventListener('submit', function (e) {
+						e.preventDefault();
+
+						grecaptcha.ready(function () {
+							grecaptcha.execute(recaptchaKey, { action: 'contact' }).then(function (token) {
+								const input = form.querySelector('input[name="recaptchaToken"]');
+								if (input) {
+									input.value = token;
+								}
+								form.submit();
+							});
+						});
+
+					});
+				});
+			};
+		});
+	</script>
+	{/block}
 </body>
 </html>

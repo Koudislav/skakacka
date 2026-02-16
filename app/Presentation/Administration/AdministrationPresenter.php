@@ -402,6 +402,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$form->addText('slug', 'Slug (jenom malá písmena, čísla, pomlčky):')
 			->addRule($form::Pattern, 'Zadejte platný slug (malá písmena, čísla, pomlčky).', '^[a-z0-9\-]+$');
 
+		$form->addText('seo_title', 'SEO titulek:')
+			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití nadpisu jako SEO titulku.');
+		
+		$form->addText('seo_description', 'SEO popis:')
+			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití SEO description ze sekce NASTAVENÍ.');
+
 		$form->addTextArea('content', 'Obsah:')
 			->setHtmlAttribute('rows', 10)
 			->setHtmlAttribute('class', 'tiny-editor');
@@ -421,6 +427,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				'slug' => $articleData->slug,
 				'show_title' => $articleData->show_title == 1,
 				'is_published' => $articleData->is_published == 1,
+				'seo_title' => $articleData->seo_title,
+				'seo_description' => $articleData->seo_description,
 			]);
 		}
 

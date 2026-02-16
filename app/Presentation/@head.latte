@@ -11,3 +11,23 @@
 
 {* Basic site css *}
 <link rel="stylesheet" href="{$basePath}{$cssFile}">
+
+<meta name="description" content="{$seo->getDescription()}" />
+
+{* JSON LD *}
+{foreach $seo->generateJsonLd() as $schema}
+<script type="application/ld+json">
+	{json_encode($schema, \JSON_UNESCAPED_UNICODE|\JSON_UNESCAPED_SLASHES)|noescape}
+</script>
+{/foreach}
+
+<meta property="og:title" content="{$seo->getOgTitle()}" />
+<meta property="og:description" content="{$seo->getOgDescription()}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{$config['base_url']}" />
+<meta property="og:image" content="{$seo->getOgImage()}" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{$seo->getOgTitle()}" />
+<meta name="twitter:description" content="{$seo->getOgDescription()}" />
+<meta name="twitter:image" content="{$seo->getOgImage()}" />

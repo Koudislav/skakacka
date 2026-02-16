@@ -1,7 +1,8 @@
 # see https://doc.nette.org/en/configuring
 
 parameters:
-
+	recaptcha:
+		threshold: 0.5
 
 application:
 	errorPresenter:

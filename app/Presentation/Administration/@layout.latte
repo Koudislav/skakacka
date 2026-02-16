@@ -48,12 +48,14 @@
 	<script>
 	tinymce.init({
 		selector: '.tiny-editor',
+		relative_urls: false,
 		plugins: [
 			'code',
 			'lists',
 			'link',
 			'table',
 			'n1ed',
+			'fullscreen',
 		],
 			external_plugins: {
 			n1ed: "https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"
@@ -67,12 +69,12 @@
 			]
 		},
 		toolbar_mode: 'wrap',
-		height: 300,
+		height: 500,
 		menubar: true,
 		toolbar: 'undo redo | blocks  | ' +
 				'bold italic underline | alignleft aligncenter ' +
 				'alignright alignjustify | bullist numlist outdent indent | ' +
-				'link table | removeformat code | n1ed',
+				'link table | removeformat code | n1ed | fullscreen',
 		content_css: [
 			'//www.tiny.cloud/css/codepen.min.css',
 			'/assets/css/bootstrap.min.css',

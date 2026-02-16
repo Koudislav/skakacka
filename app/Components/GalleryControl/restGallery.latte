@@ -1,0 +1,6 @@
+<div class="rest-gallery">
+{foreach $photos as $photo}
+	{continueIf in_array($photo->gallery_id, $usedGalleryIds)}
+	<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-{$galleryId}-{$randomKey}" data-description="{$photo->description}"></a>
+{/foreach}
+</div>

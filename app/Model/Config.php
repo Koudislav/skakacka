@@ -64,8 +64,8 @@ class Config implements \ArrayAccess {
 		return isset($this->config[$offset]);
 	}
 
-	public function offsetGet($offset):mixed {
-		if (!isset($this->config[$offset])) {
+	public function offsetGet($offset): mixed {
+		if (!array_key_exists($offset, $this->config)) {
 			throw new \Exception\ConfigException("Přístup k neexistující proměnné konfigurace: '{$offset}'");
 		}
 		return $this->config[$offset];
@@ -84,5 +84,4 @@ class Config implements \ArrayAccess {
 namespace Exception;
 
 class ConfigException extends \Exception {
-    //put your code here
 }
