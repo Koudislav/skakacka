@@ -21,17 +21,18 @@
 	{include '@navbar.latte'}
 	{block loader}<span id="page-loader"></span>{/block}
 
-	<div class="container flex-grow-1 pt-5">
+	<div class="flex-grow-1">
 		{include content}
 	</div>
 
-	<footer class="container-fluid text-end">
-		© {date('Y')} <a href="https://jirikodys.cz" target="_blank">jirikodys.cz</a>
-	</footer>
+	{control articleAsset, '@asset-footer'}
+
 	{include '@bodyScripts.latte'}
 
 	{block scripts}
 	<script>
+		naja.initialize();
+
 		// reCaptcha v3 for contact form
 		document.addEventListener('DOMContentLoaded', function () {
 

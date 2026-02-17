@@ -1,7 +1,9 @@
 {block content}
-{if $article->show_title}
-	<h1 n:block=title>{$article->title}</h1>
-{/if}
-<div>
-	{$articleContent|noescape}
+<div class="container content-container">
+	{if $article->show_title}
+		<h1 n:block=title>{$article->title}</h1>
+	{/if}
+	<div>
+		{$articleContent|noescape}
+	</div>
 </div>

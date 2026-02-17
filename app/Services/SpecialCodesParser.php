@@ -12,6 +12,7 @@ class SpecialCodesParser {
 		'gallery::trapezoid' => 'trapezoid',
 		'gallery::preview' => 'renderGalleryBasicPreview',
 		'form::contact' => 'renderContactForm',
+		'calendar::basic' => 'renderCalendarBasic',
 	];
 
 	public function __construct(
@@ -53,9 +54,8 @@ class SpecialCodesParser {
 				case 'trapezoid':
 					return $this->renderTrapezoidGallery($params);
 				case 'renderGalleryBasicPreview':
-					$fn = $this->allowedActions[$action];
-					return $this->$fn($params);
 				case 'renderContactForm':
+				case 'renderCalendarBasic':
 					$fn = $this->allowedActions[$action];
 					return $this->$fn($params);
 				default:
@@ -111,6 +111,10 @@ class SpecialCodesParser {
 
 	public function renderContactForm(array $params): string {
 		return $this->presenter->renderContactFormSnippet();
+	}
+
+	public function renderCalendarBasic(array $params): string {
+		return $this->presenter->renderCalendarSnippet();
 	}
 
 }

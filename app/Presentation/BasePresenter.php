@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation;
 
 use Nette;
+use App\Components\ArticleAsset\ArticleAssetControlFactory;
 use App\Model\Config;
 use App\Model\LessCompiler;
 use App\Model\Seo\SeoData;
@@ -13,6 +14,9 @@ use App\Service\SitemapGenerator;
 use Nette\Application\UI\Form;
 
 class BasePresenter extends Nette\Application\UI\Presenter {
+
+	/** @var ArticleAssetControlFactory @inject */
+	public ArticleAssetControlFactory $articleAssetControlFactory;
 
 	/** @var Config @inject */
 	public $config;
@@ -46,6 +50,10 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	public function beforeRender() {
 		parent::beforeRender();
 		$this->template->navbarMenu = $this->processNavbarMenu();
+	}
+
+	protected function createComponentArticleAsset($string) {
+		return $this->articleAssetControlFactory->create();
 	}
 
 	public function disableForm(Form $form): void{

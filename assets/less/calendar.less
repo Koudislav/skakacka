@@ -1,0 +1,162 @@
+.calendar-binary {
+	max-width: 720px;
+	margin: 0 auto;
+	font-size: 0.95rem;
+}
+
+/* ===== HEADER ===== */
+
+.calendar-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1.25rem;
+	padding-bottom: .5rem;
+	border-bottom: 1px solid #e9ecef;
+	strong {
+		font-weight: 600;
+		font-size: 1.1rem;
+		color: #212529;
+	}
+	a {
+		text-decoration: none;
+		color: #0d6efd; /* bootstrap primary */
+		font-weight: 500;
+		padding: .25rem .5rem;
+		border-radius: .375rem;
+		transition: background-color .15s ease;
+		&:hover {
+			background: #f1f5ff;
+		}
+	}
+}
+
+/* ===== TABLE ===== */
+
+.calendar-grid {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	thead th {
+		font-size: .75rem;
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		color: #6c757d;
+		font-weight: 600;
+		padding: .5rem 0;
+		text-align: center;
+	}
+}
+
+/* ===== DAY CELL ===== */
+
+.calendar-day {
+	position: relative;
+	height: 88px;
+	vertical-align: top;
+	padding: .4rem;
+	border: 1px solid #f1f3f5;
+	background: #fff;
+	transition: background-color .15s ease;
+	&:hover {
+		background: #fafbfc;
+	}
+}
+
+/* empty cells */
+.calendar-day:empty {
+	background: #fafafa;
+}
+
+/* ===== DAY NUMBER ===== */
+
+.day-number {
+	font-size: .85rem;
+	font-weight: 500;
+	color: #495057;
+}
+
+/* ===== BUSY INDICATOR (binary) ===== */
+
+.cell-status {
+	position: absolute;
+	left: .4rem;
+	right: .4rem;
+	bottom: .4rem;
+	height: 22px;
+	border-radius: 999px;
+	text-align: center;
+	&.free {
+		background: #4dc26c;
+		&::after {
+			content: 'volné'
+		}
+	}
+	&.busy {
+		background: #9a2e2e;
+		&::after {
+			color: #fff;
+			content: 'obsazeno';
+		}
+	}
+}
+
+/* ===== WEEKEND (optional auto styling) ===== */
+
+.calendar-grid tbody td:nth-child(6),
+.calendar-grid tbody td:nth-child(7) {
+	background: #edebe9;
+	.cell-status {
+		height: 6px;
+		background: #c7c7c7;
+		&::after {
+			content: '';
+		}
+	}
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: @break-min-md) {
+	.calendar-day {
+		height: 64px;
+		padding: .35rem;
+	}
+	.day-number {
+		font-size: .75rem;
+	}
+	// .busy {
+	// 	height: 5px;
+	// }
+	.calendar-header strong {
+		font-size: 1rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.calendar-day {
+		height: 52px;
+		padding: .25rem;
+	}
+	.calendar-grid thead th {
+		font-size: .65rem;
+	}
+	.cell-status {
+		&.free, &.busy {
+			height: 5px;
+			&::after {
+				content: '';
+			}
+		}
+	}
+}
+
+.calendar-day.today {
+	border-color: #0d6efd;
+	// background: #f1f5ff;
+	background: linear-gradient(309deg, #ff980045, #c0ffe27a);
+}
+
+.calendar-day.is-clickable {
+	cursor: pointer;
+}

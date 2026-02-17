@@ -42,6 +42,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	/** @var \App\Service\ImageService @inject */
 	public ImageService $imageService;
 
+	// /** @var \App\Repository\CalendarRepository @inject */
+	// public \App\Repository\CalendarRepository $calendarRepository;
+
+	// public $calendarYear;
+	// public $calendarMonth;
+
 	public const WWW_DIR = __DIR__ . '/../../../www';
 	public const UPLOAD_DIR = self::WWW_DIR . '/upload';
 
@@ -87,6 +93,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'title' => 'Nastavení',
 			'onlyForLoggedIn' => true,
 		],
+		// [
+		// 	'action' => 'Administration:calendarBinary',
+		// 	'icon' => 'bi bi-calendar-event',
+		// 	'title' => 'Kalendář',
+		// 	'onlyForLoggedIn' => true,
+		// ],
 	];
 
 	public const ARTICLE_TYPES = [
@@ -269,6 +281,34 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->template->currentCategory = $category;
 		$this->template->items = $this->configurationRepository->getByCategory($category);
 	}
+
+	// public function actionCalendarBinary(?int $year = null, ?int $month = null): void {
+	// 	if (!$this->user->isLoggedIn()) {
+	// 		$this->flashMessage('Nemáte oprávnění.', 'danger');
+	// 		$this->redirect('Administration:default');
+	// 	}
+
+	// 	$now = new \DateTimeImmutable();
+
+	// 	$this->calendarYear = $year ?? (int) $now->format('Y');
+	// 	$this->calendarMonth = $month ?? (int) $now->format('n');
+	// }
+
+	// public function renderCalendarBinary(): void {
+	// 	$from = (new \DateTimeImmutable("{$this->calendarYear}-{$this->calendarMonth}-01"))
+	// 		->modify('first day of this month')
+	// 		->setTime(0, 0);
+
+	// 	$to = $from
+	// 		->modify('last day of this month')
+	// 		->setTime(23, 59, 59);
+
+	// 	$this->template->year = $this->calendarYear;
+	// 	$this->template->month = $this->calendarMonth;
+
+	// 	$this->template->binaryDays = $this->calendarRepository
+	// 		->getBinaryData($from, $to);
+	// }
 
 	//components
 	protected function createComponentLoginForm() {
@@ -640,6 +680,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
 			}
 			$cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$cache->clean([Cache::Tags => ['articleAssets']]);
 			$this->redirect('this');
 		} else {
 			//novy
@@ -961,5 +1002,21 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->sendJson(['status' => 'ok']);
 	}
 
+	// public function handleToggleDay(string $date): void {
+	// 	if (!$this->isAjax()) {
+	// 		$this->error('Invalid request');
+	// 	}
+	
+	// 	$dt = new \DateTimeImmutable($date);
+	
+	// 	$this->calendarRepository->toggleBlockingDay($dt);
+	
+	// 	if ($this->isAjax()) {
+	// 		$this->redrawControl('calendar');
+	// 	} else {
+	// 		$this->redirect('this');
+	// 	}
+	// 	$this->sendJson(['status' => 'ok']);
+	// }
 
 }

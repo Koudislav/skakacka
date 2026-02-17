@@ -1,0 +1,64 @@
+{snippet calendar}
+{dump}
+<div class="calendar calendar-{$mode}">
+
+	<div class="calendar-header">
+		<a n:href="changeMonth! year => $year, month => $month - 1" class="ajax text-decoration-none" data-naja-history="off">
+			<i class="bi bi-rewind-fill"></i>
+		</a>
+		<strong>{$monthName} {$year}</strong>
+		<a n:href="changeMonth! year => $year, month => $month + 1" class="ajax text-decoration-none" data-naja-history="off">
+			<i class="bi bi-fast-forward-fill"></i>
+		</a>
+	</div>
+
+	<table class="calendar-grid">
+		<thead>
+			<tr>
+				<th>Po</th><th>Út</th><th>St</th>
+				<th>Čt</th><th>Pá</th><th>So</th><th>Ne</th>
+			</tr>
+		</thead>
+		<tbody>
+		{var $weeks = array_chunk($calendar, 7)}
+		{foreach $weeks as $week}
+			<tr>
+				{foreach $week as $cell}
+					{dump $cell}
+					<td n:class="$today === ($cell['date'] ?? null) ? 'today', calendar-day">
+						{if $cell}
+							<div class="day-number">{$cell['day']}</div>
+
+							{if $mode === 'binary'}
+								<div n:class="$cell['data'] ? busy : free, cell-status, small"></div>
+								{if $user->isLoggedIn()}
+									<a n:href="toggleDay! date: $cell['date']" class="ajax day-toggle text-decoration-none" data-naja-history="off">
+										<i n:class="$cell['data'] ? 'bi-toggle-on text-danger' : 'bi-toggle-off text-success'"></i>
+									</a>
+								{/if}
+							{/if}
+
+							{if $mode === 'events'}
+								{var $events = $cell['data'] ?? []}
+
+								{foreach array_slice($events, 0, 3) as $event}
+									<div class="event">{$event['title']}</div>
+								{/foreach}
+
+								{if count($events) > 3}
+									<div class="more">
+										+{count($events) - 3} dalších
+									</div>
+								{/if}
+							{/if}
+						{/if}
+					</td>
+				{/foreach}
+			</tr>
+		{/foreach}
+		</tbody>
+	</table>
+
+</div>
+
+{/snippet}

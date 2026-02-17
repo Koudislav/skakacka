@@ -1,25 +1,28 @@
 {block loader}<span class="active" id="page-loader"></span>{/block}
 
 {block content}
+<div class="container content-container">
+	<h1 n:block=title>{$gallery->title}</h1>
+	<div>{$gallery->description|noescape}</div>
 
-<h1 n:block=title>{$gallery->title}</h1>
-<div>{$gallery->description|noescape}</div>
-
-<!-- Justified container -->
-<div id="justified-gallery" class="d-flex flex-wrap gap-2">
-	{foreach $pictures as $picture}
-		<div class="justified-item">
-			<a href="{$basePath}/{$picture->path_big}" class="glightbox" data-gallery="gallery-{$gallery->id}" data-description="{$picture->description}">
-				<img 
-					src="{$basePath}/{$picture->path_small}" 
-					data-medium="{$basePath}/{$picture->path_medium}"
-					alt="{$picture->description}" 
-					style="height:255px; width:auto; display:block; border-radius:5px;">
-			</a>
-		</div>
-	{/foreach}
+	<!-- Justified container -->
+	<div id="justified-gallery" class="d-flex flex-wrap gap-2">
+		{foreach $pictures as $picture}
+			<div class="justified-item">
+				<a href="{$basePath}/{$picture->path_big}" class="glightbox" data-gallery="gallery-{$gallery->id}" data-description="{$picture->description}">
+					<img 
+						src="{$basePath}/{$picture->path_small}" 
+						data-medium="{$basePath}/{$picture->path_medium}"
+						alt="{$picture->description}" 
+						style="height:255px; width:auto; display:block; border-radius:5px;">
+				</a>
+			</div>
+		{/foreach}
+	</div>
 </div>
-
+{/block}
+{block scripts}
+{include parent}
 <!-- imagesLoaded -->
 <script src="https://unpkg.com/imagesloaded@5/imagesloaded.pkgd.min.js"></script>
 
@@ -96,5 +99,4 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 });
 </script>
-
 {/block}
