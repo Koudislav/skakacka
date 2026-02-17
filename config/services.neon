@@ -13,6 +13,8 @@ services:
 	- App\Service\SitemapGenerator(%wwwDir%)
 	- App\Service\ReCaptchaService(%recaptcha.threshold%)
 
+	- App\Components\ContactFormControlFactory
+
 search:
 	-	in: %appDir%
 		classes:

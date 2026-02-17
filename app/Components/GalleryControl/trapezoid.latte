@@ -4,7 +4,7 @@
 		{var $usedGalleryIds = []}
 		{foreach $photos as $photo}
 			{php $usedGalleryIds[] = $photo->gallery_id}
-			<div class="photo-wrap" n:attr="style: $height ? 'height: '. $height . 'px;' : null">
+			<div class="photo-wrap rand-{$randomKey}">
 				<a href="/{$photo->path_big|noescape}" class="glightbox" data-gallery="gallery-{$galleryId}-{$randomKey}" data-description="{$photo->description}">
 					<div class="photo p{$photo->id} rand-{$randomKey}" style="background-image: url('/{$photo->path_big|noescape}');"></div>
 				</a>

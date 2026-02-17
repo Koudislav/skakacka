@@ -2,6 +2,7 @@
 
 namespace App\Presentation\Article;
 
+use App\Components\ContactFormControlFactory;
 use App\Repository\ArticleRepository;
 use App\Repository\GalleryRepository;
 use App\Service\ReCaptchaService;
@@ -17,6 +18,9 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	/** @var ReCaptchaService @inject */
 	public $reCaptchaService;
+
+	/** @var ContactFormControlFactory @inject */
+	public $contactFormControlFactory;
 
 	public function actionDefault(string $slug): void {
 		$article = $this->articleRepository->getBySlug($slug);
@@ -46,7 +50,7 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 	}
 
 	protected function createComponentContactForm(): \App\Components\ContactFormControl {
-		return new \App\Components\ContactFormControl($this->reCaptchaService, $this->getHttpRequest(), $this->config);
+		return $this->contactFormControlFactory->create();
 	}
 
 }

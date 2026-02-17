@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Components;
 
 use App\Forms\BootstrapFormFactory;
-use App\Model\Config;
+use App\Service\MailService;
 use App\Service\ReCaptchaService;
 use Nette\Application\UI\Control;
 use Nette\Application\UI\Form;
@@ -16,7 +16,7 @@ class ContactFormControl extends Control {
 	public function __construct(
 		private ReCaptchaService $reCaptcha,
 		private Request $httpRequest,
-		private Config $config,
+		private MailService $mailService,
 	) {}
 
 	public function createComponentForm(): Form {
@@ -63,8 +63,10 @@ class ContactFormControl extends Control {
 			return;
 		}
 
-		// TODO: poslat email
-		// např. pomocí Nette\Mail
+		$this->mailService->send(
+			'Nová zpráva z kontaktního formuláře',
+			"Jméno: {$values->name}<br>Email: {$values->email}<br>Telefon: {$values->phone}<br>Zpráva:<br>{$values->message}"
+		);
 
 		$this->presenter->flashMessage('Zpráva byla odeslána.');
 		$this->presenter->redirect('this');
