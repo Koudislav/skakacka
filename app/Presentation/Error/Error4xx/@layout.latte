@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	{include '@head.latte'}
+
+	<title>{ifset title}{include title|stripHtml} | {/ifset}Skákačka</title>
+
+	{asset? 'main.js'}
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+	{include '@navbar.latte'}
+	{block loader}<span id="page-loader"></span>{/block}
+
+	<div class="flex-grow-1">
+		{include content}
+	</div>
+
+	{control articleAsset, '@asset-footer'}
+</body>
+</html>

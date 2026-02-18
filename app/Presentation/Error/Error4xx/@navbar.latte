@@ -1,8 +1,10 @@
 <nav class="navbar navbar-expand-lg main-navbar-custom pt-1">
 	<div class="container position-relative">
-		<a class="navbar-brand py-0" n:href="Home:default">
+		<a class="navbar-brand py-0" href="/">
 			<img src="{$config['logo_path']}" alt="Skákačka" height="80">
 		</a>
-		{include '@navbarMenu.latte', navbarMenu: $navbarMenu}
+		{if !empty($navbarMenu)}
+			{include '../../@navbarMenu.latte', navbarMenu: $navbarMenu}
+		{/if}
 	</div>
 </nav>

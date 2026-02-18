@@ -12,6 +12,8 @@ use App\Model\Seo\SeoData;
 use App\Repository\MenuRepository;
 use App\Service\SitemapGenerator;
 use Nette\Application\UI\Form;
+use Nette\Caching\Cache;
+use Nette\Caching\Storage;
 
 class BasePresenter extends Nette\Application\UI\Presenter {
 
@@ -30,9 +32,14 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	/** @var SitemapGenerator @inject */
 	public $sitemapGenerator;
 
+	/** @var Storage @inject */
+	public $storage;
+
 	public SeoData $seo;
 
 	public string $homeString = 'home';
+
+	public const MENU_CACHE_KEY = 'navbar_menu';
 
 	public function startUp() {
 		parent::startup();
@@ -41,7 +48,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		$this->template->config = $this->config;
 		$this->template->recaptchaPublic = $this->config['recaptcha_public'];
 		// $this->template->actualLink = $this->link('this');
-		if ($this->sitemapGenerator->needsRegeneration()) {
+		if (!$this->isAjax() && $this->sitemapGenerator->needsRegeneration()) {
 			$this->sitemapGenerator->generate();
 		}
 		$this->seoData();
@@ -63,40 +70,44 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	}
 
 	private function processNavbarMenu(): array {
-		$menu = [];
-		$menuItems = $this->menuRepository->findByKeyStructured('main_horizontal', true);
-		foreach ($menuItems as $item) {
-			if (empty($item['item']->presenter)) {
-				$children = [];
-				$hasActiveChild = false;
-				foreach ($item['children'] as $child) {
-					$childItem = $this->processNavbarMenuItem(['item' => $child]);
-					if ($childItem['isActive']) {
-						$hasActiveChild = true;
+		$cache = new Cache($this->storage);
+		return $cache->load(self::MENU_CACHE_KEY, function (&$dependencies) {
+			$dependencies[Cache::Tags] = [self::MENU_CACHE_KEY];
+			$menu = [];
+			$menuItems = $this->menuRepository->findByKeyStructured('main_horizontal', true);
+			foreach ($menuItems as $item) {
+				if (empty($item['item']->presenter)) {
+					$children = [];
+					$hasActiveChild = false;
+					foreach ($item['children'] as $child) {
+						$childItem = $this->processNavbarMenuItem(['item' => $child]);
+						if ($childItem['isActive']) {
+							$hasActiveChild = true;
+						}
+						$children[] = $childItem;
 					}
-					$children[] = $childItem;
+					$menu[] = [
+						'label' => $item['item']->label,
+						'isParent' => true,
+						'children' => $children,
+						'isActive' => $hasActiveChild,
+					];
+	
+				} else {
+					$menu[] = $this->processNavbarMenuItem($item);
 				}
-				$menu[] = [
-					'label' => $item['item']->label,
-					'isParent' => true,
-					'children' => $children,
-					'isActive' => $hasActiveChild,
-				];
-
-			} else {
-				$menu[] = $this->processNavbarMenuItem($item);
 			}
-		}
-		if ($this->getUser()->isLoggedIn()) {
-			$menu[] = [
-				'label' => 'Admin',
-				'link' => $this->link('Administration:default'),
-				'isParent' => false,
-				'isActive' => false,
-			];
-		}
-
-		return $menu;
+			if ($this->getUser()->isLoggedIn()) {
+				$menu[] = [
+					'label' => 'Admin',
+					'link' => $this->link('Administration:default'),
+					'isParent' => false,
+					'isActive' => false,
+				];
+			}
+	
+			return $menu;
+		});
 	}
 
 	public function processNavbarMenuItem(array $item): array {

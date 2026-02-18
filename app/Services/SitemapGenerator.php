@@ -29,16 +29,17 @@ class SitemapGenerator {
 	}
 
 	public function needsRegeneration(): bool {
-		if (!file_exists($this->xmlPath)) {
-			return true;
-		}
-
-		$lastModified = filemtime($this->xmlPath);
-		if ($lastModified === false) {
-			return true;
-		}
-
-		return (time() - $lastModified) > self::MAX_AGE;
+		return $this->cache->load('sitemap-check', function (&$dependencies) {
+			$dependencies[Cache::Expire] = '1 hour';	
+			if (!file_exists($this->xmlPath)) {
+				return true;
+			}	
+			$lastModified = filemtime($this->xmlPath);
+			if ($lastModified === false) {
+				return true;
+			}	
+			return (time() - $lastModified) > self::MAX_AGE;
+		});
 	}
 
 	public function generate(): void {

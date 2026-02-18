@@ -12,7 +12,9 @@
 {* Basic site css *}
 <link rel="stylesheet" href="{$basePath}{$cssFile}">
 
+{dump $seo}
 <meta name="description" content="{$seo->getDescription()}" />
+<link rel="canonical" href="{$seo->getCanonical()|escapeHtml}" />
 
 {* JSON LD *}
 {foreach $seo->generateJsonLd() as $schema}
@@ -24,7 +26,7 @@
 <meta property="og:title" content="{$seo->getOgTitle()}" />
 <meta property="og:description" content="{$seo->getOgDescription()}" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="{$config['base_url']}" />
+<meta property="og:url" content="{$seo->getCanonical()|escapeHtml}" />
 <meta property="og:image" content="{$seo->getOgImage()}" />
 
 <meta name="twitter:card" content="summary_large_image" />

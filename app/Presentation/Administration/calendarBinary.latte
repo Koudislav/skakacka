@@ -1,0 +1,43 @@
+{* {block content}
+{dump}
+
+<h1 class="h3">Kalendář - blokace</h1>
+<hr>
+
+<div class="calendar-admin">
+
+{snippet calendar}
+
+<table class="table table-bordered text-center">
+<thead>
+<tr>
+<th>Po</th><th>Út</th><th>St</th>
+<th>Čt</th><th>Pá</th><th>So</th><th>Ne</th>
+</tr>
+</thead>
+
+<tbody>
+{var $weeks = array_chunk($binaryDays, 7)}
+{foreach $weeks as $week}
+<tr>
+	{foreach $week as $day}
+		{var $date = $day['date']}
+		{var $isBlocked = isset($binaryDays[$date])}
+
+		<td>
+			<a
+				n:href="toggleDay! date: $date"
+				class="ajax day-toggle {$isBlocked ? 'blocked' : ''}"
+			>
+				{$day['day']}
+			</a>
+		</td>
+	{/foreach}
+</tr>
+{/foreach}
+</tbody>
+</table>
+
+{/snippet}
+
+</div> *}

@@ -1,0 +1,32 @@
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+	<span class="navbar-toggler-icon"></span>
+</button>
+<div class="collapse navbar-collapse justify-content-center position-md-absolute start-50 translate-md-middle-x" id="navbarNav">
+	<ul class="navbar-nav fs-4">
+		{foreach $navbarMenu as $menuItem}
+			{if $menuItem['isParent']}
+			{if !empty($menuItem['children'])}
+				<li class="nav-item dropdown">
+					<span n:class="$menuItem['isActive'] ? active, nav-link, dropdown-toggle" id="navbarDropdown{$menuItem['label']}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						{$menuItem['label']}
+					</span>
+					<div class="dropdown-menu mt-0" aria-labelledby="navbarDropdown{$menuItem['label']}">
+						{foreach $menuItem['children'] as $childItem}
+							<a n:class="$childItem['isActive'] ? active, dropdown-item"
+									href="{$childItem['link']}">
+								{$childItem['label']}
+							</a>
+						{/foreach}
+					</div>
+				</li>
+			{/if}
+			{else}
+			<li class="nav-item">
+				<a n:class="$menuItem['isActive'] ? active, nav-link" href="{$menuItem['link']}">
+					{$menuItem['label']}
+				</a>
+			</li>
+			{/if}
+		{/foreach}
+	</ul>
+</div>

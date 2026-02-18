@@ -4,24 +4,69 @@
 <title>Server Error</title>
 
 <style>
-	#nette-error { all: initial; position: absolute; top: 0; left: 0; right: 0; height: 70vh; min-height: 400px; display: flex; align-items: center; justify-content: center; z-index: 1000 }
+	#nette-error { all: initial; display: flex; align-items: center; justify-content: center; z-index: 1000 }
 	#nette-error div { all: initial; max-width: 550px; background: white; color: #333; display: block }
 	#nette-error h1 { all: initial; font: bold 50px/1.1 sans-serif; display: block; margin: 40px }
 	#nette-error p { all: initial; font: 20px/1.4 sans-serif; margin: 40px; display: block }
-	#nette-error small { color: gray }
+	#nette-error small { color: gray; display: block }
 </style>
 
 <div id=nette-error>
 	<div>
-		<h1>Server Error</h1>
+		<h1>Ajajaj - Server Error</h1>
 
-		<p>We're sorry! The server encountered an internal error and
-		was unable to complete your request. Please try again later.</p>
+		<p>
+			Omlouváme se, ale došlo k neočekávané chybě aplikace
+			<br>
+			A protože jsme ji neočekávali, nemáme pro ni žádné další informace.
+			<br>
+			Můžete zkusit obnovit stránku, ale pravděpodobně to nepomůže.
+		</p>
+		<p>Pokud se tato chyba opakuje a máte nás rádi, kontaktujte nás prosím a přidejte pár technických údajů, ať se na příště můžeme lépe připravit.</p>
+		<p>Pomůže nám například:
+			<small> - co jste dělali, když se chyba objevila</small>
+			<small> - jaké zařízení a prohlížeč používáte</small>
+			<small> - url adresa a které zrovna jste</small>
+			<small> - čas, kdy se chyba objevila</small>
+			<small> - cokoliv vás napadne, že by nás mohlo zajímat</small>
 
-		<p><small>error 500</small></p>
+			A pokud vám nepomohla aktualizace prohlížeče, snad půjde alespoň <a href="/">vrátit se na domovskou stránku</a>
+		</p>
+
+		<p>A trochu technických informací: <strong> Error 500</strong>.</p>
 	</div>
 </div>
 
 <script>
 	document.body.insertBefore(document.getElementById('nette-error'), document.body.firstChild);
 </script>
+
+<!-- <div id=nette-error>
+	<div>
+		<h1>Ajajaj - Server Error</h1>
+
+		<p>
+			Omlouváme se, ale došlo k neočekávané chybě aplikace
+			<br>
+			A protože jsme ji neočekávali, nemáme pro ni žádné další informace.
+			<br>
+			Můžete zkusit obnovit stránku, ale pravděpodobně to nepomůže.
+		</p>
+		<p>
+			Pokud se tato chyba opakuje a máte nás rádi, kontaktujte nás prosím a přidejte pár technických údajů, ať se na příště můžeme lépe připravit.
+			<br>
+			Pomůže nám například:
+			<ul>
+				<li>co jste dělali, když se chyba objevila</li>
+				<li>jaké zařízení a prohlížeč používáte</li>
+				<li>url adresa a které zrovna jste</li>
+				<li>čas, kdy se chyba objevila</li>
+				<li>cokoliv vás napadne, že by nás mohlo zajímat</li>
+			</ul>
+
+			A pokud vám nepomohla aktualizace prohlížeče, snad půjde alespoň <a href="/">vrátit se na domovskou stránku</a>
+		</p>
+
+		<p>A trochu technických informací: <strong> Error 500</strong>.</p>
+	</div>
+</div> -->

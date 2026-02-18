@@ -10,21 +10,17 @@ use Nette\Application\Responses;
 use Nette\Http;
 use Tracy\ILogger;
 
-
 /**
  * Handles uncaught exceptions and errors, and logs them.
  */
 #[Requires(forward: true)]
-final class Error5xxPresenter implements Nette\Application\IPresenter
-{
+final class Error5xxPresenter implements Nette\Application\IPresenter {
 	public function __construct(
 		private readonly ILogger $logger,
 	) {
 	}
 
-
-	public function run(Nette\Application\Request $request): Nette\Application\Response
-	{
+	public function run(Nette\Application\Request $request): Nette\Application\Response {
 		// Log the exception
 		$exception = $request->getParameter('exception');
 		$this->logger->log($exception, ILogger::EXCEPTION);
@@ -36,4 +32,5 @@ final class Error5xxPresenter implements Nette\Application\IPresenter
 			}
 		});
 	}
+
 }
