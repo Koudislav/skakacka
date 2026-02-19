@@ -22,11 +22,32 @@
 	<div class="container flex-grow-1 pt-2">
 		<div class="row">
 			{ifset blockMenu}
-				<div class="col-3">
+				{* MOBILE TOGGLE BUTTON *}
+				<div class="d-lg-none mb-2">
+					<button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminMenuCanvas">
+						<i class="bi bi-list"></i> Menu
+					</button>
+				</div>
+
+				{* DESKTOP SIDEBAR *}
+				<div class="col-lg-3 d-none d-lg-block">
 					{include blockMenu}
 				</div>
-				<div class="col-9">
+
+				{* CONTENT *}
+				<div class="col-12 col-lg-9">
 					{include content}
+				</div>
+
+				{* MOBILE OFFCANVAS *}
+				<div class="offcanvas offcanvas-start" tabindex="-1" id="adminMenuCanvas">
+					<div class="offcanvas-header">
+						<h5 class="offcanvas-title">Menu</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+					</div>
+					<div class="offcanvas-body">
+						{include blockMenu}
+					</div>
 				</div>
 			{else}
 				<div class="col-12">
@@ -49,11 +70,16 @@
 		selector: '.tiny-editor',
 		relative_urls: false,
 		extended_valid_elements: 'i[class]',
+		paste_data_images: false,//not base64
+		automatic_uploads: false,//not base64 upload
+		image_file_types: 'jpg,jpeg,png,gif,webp,svg',
+
 		plugins: [
 			'code',
 			'lists',
 			'link',
 			'table',
+			'image',
 			'n1ed',
 			'fullscreen',
 		],
@@ -74,13 +100,26 @@
 		toolbar: 'undo redo | blocks  | ' +
 				'bold italic underline | alignleft aligncenter ' +
 				'alignright alignjustify | bullist numlist outdent indent | ' +
-				'link table | removeformat code | n1ed | fullscreen',
+				'link image table | removeformat code | n1ed | fullscreen',
 		content_css: [
 			'//www.tiny.cloud/css/codepen.min.css',
 			'/assets/css/bootstrap.min.css',
 			'/assets/fonts/bootstrap-icons-1.11.0/bootstrap-icons.min.css',
 			{$cssFile},
 		],
+		file_picker_types: 'image',
+
+		file_picker_callback: function (callback, value, meta) {
+			if (meta.filetype === 'image') {
+				window.tinyMceImageCallback = callback;
+
+				window.open(
+					'/administration/upload-manager',
+					'UploadManager',
+					'width=1200,height=800'
+				);
+			}
+		},
 	});
 	</script>
 	{/block}

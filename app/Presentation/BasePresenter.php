@@ -71,69 +71,91 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	private function processNavbarMenu(): array {
 		$cache = new Cache($this->storage);
-		return $cache->load(self::MENU_CACHE_KEY, function (&$dependencies) {
+
+		$menu = $cache->load(self::MENU_CACHE_KEY, function (&$dependencies) {
 			$dependencies[Cache::Tags] = [self::MENU_CACHE_KEY];
+
 			$menu = [];
 			$menuItems = $this->menuRepository->findByKeyStructured('main_horizontal', true);
+
 			foreach ($menuItems as $item) {
 				if (empty($item['item']->presenter)) {
 					$children = [];
-					$hasActiveChild = false;
+
 					foreach ($item['children'] as $child) {
-						$childItem = $this->processNavbarMenuItem(['item' => $child]);
-						if ($childItem['isActive']) {
-							$hasActiveChild = true;
-						}
-						$children[] = $childItem;
+						$children[] = $this->processNavbarMenuItem(['item' => $child]);
 					}
+
 					$menu[] = [
 						'label' => $item['item']->label,
 						'isParent' => true,
 						'children' => $children,
-						'isActive' => $hasActiveChild,
+						'isActive' => false,
 					];
-	
 				} else {
 					$menu[] = $this->processNavbarMenuItem($item);
 				}
 			}
-			if ($this->getUser()->isLoggedIn()) {
-				$menu[] = [
-					'label' => 'Admin',
-					'link' => $this->link('Administration:default'),
-					'isParent' => false,
-					'isActive' => false,
-				];
-			}
-	
+
 			return $menu;
 		});
+
+		if ($this->getUser()->isLoggedIn()) {
+			$menu[] = [
+				'label' => 'Admin',
+				'link' => $this->link('Administration:default'),
+				'isParent' => false,
+				'isActive' => false,
+			];
+		}
+
+		// 🔥 oživení active stavů
+		return $this->markActiveItems($menu);
 	}
 
 	public function processNavbarMenuItem(array $item): array {
-		$currentPresenter = $this->getName();
-		$currentParams = $this->getParameters();
-		$itemParams = $item['item']->params ? json_decode($item['item']->params, true) : [];
+		$itemParams = $item['item']->params
+			? json_decode($item['item']->params, true)
+			: [];
 
-		$isActive = false;
-		if ($currentPresenter === $item['item']->presenter) {
-			if ($currentPresenter === 'Article' && !empty($currentParams['slug'])) {
-				if ($currentParams['slug'] ?? null === ($itemParams['slug'] ?? null)) {
-					if (isset($itemParams['slug']) && $currentParams['slug'] === $itemParams['slug']) {
-						$isActive = true;
-					}
-				}
-			}
-			if ($currentPresenter === 'Gallery') {
-				$isActive = true;
-			}
-		}
 		return [
 			'label' => $item['item']->label,
-			'link' => $this->link($item['item']->presenter . ':' . $item['item']->action, $itemParams),
+			'link' => $this->link(
+				$item['item']->presenter . ':' . $item['item']->action,
+				$itemParams
+			),
 			'isParent' => false,
-			'isActive' => $isActive,
+			'isActive' => false,
+			'item' => $item['item']->toArray(),
 		];
+	}
+
+	private function markActiveItems(array $items): array {
+		foreach ($items as &$item) {
+
+			if (!empty($item['children'])) {
+				$item['children'] = $this->markActiveItems($item['children']);
+
+				$item['isActive'] = false;
+				foreach ($item['children'] as $child) {
+					if (!empty($child['isActive'])) {
+						$item['isActive'] = true;
+						break;
+					}
+				}
+				continue;
+			}
+
+			if (!empty($item['link']) && !empty($item['item'])) {
+				bdump($item);
+				$item['isActive'] = (
+					$this->isLinkCurrent($item['item']['presenter'] . ':' . $item['item']['action'], $item['item']['params'] ? json_decode($item['item']['params'], true) : [])
+					|| ($item['item']['presenter'] === 'Gallery' && $this->getName() === 'Gallery')
+				);
+			}
+		}
+
+		return $items;
 	}
 
 	public function seoData(): void {

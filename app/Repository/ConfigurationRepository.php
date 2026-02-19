@@ -27,7 +27,7 @@ class ConfigurationRepository {
 		return $this->db->table('configuration')
 			->where('type', 'label')
 			->where('active', 1)
-			->order('key ASC')
+			->order('description ASC')
 			->fetchPairs('category', 'value_string');
 	}
 
@@ -35,7 +35,7 @@ class ConfigurationRepository {
 		return $this->db->table(self::CONFIGURATION_TABLE)
 			->where('category', $category)
 			->where('active', 1)
-			->order('type = "label" DESC, key');
+			->order('sort_order, key');
 	}
 
 	public function updateValue(string $key, mixed $value, int $userId): void {

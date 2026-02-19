@@ -1,17 +1,38 @@
-<div class="container-fluid d-flex justify-content-between align-items-center border-bottom mb-3 pb-2">
-	<div class="admin-actions d-flex align-items-center gap-4">
-		{foreach $menu as $m}
-			<a class="text-decoration-none" href="{$m['link']}"><i class="{$m['icon']}" title="{$m['title']}"></i> {$m['title']}</a>
-		{/foreach}
-	</div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-3">
+	<div class="container-fluid">
 
-	<span>
-		{if !$user->isLoggedIn()}
-			Nepřihlášený
-		{else}
-			{$user->getIdentity()->email}
-			|
-			<a class="text-decoration-none" href="{link Logout!}"><i class="bi bi-box-arrow-right" title="Logout"></i> Odhlásit se</a>
-		{/if}
-	</span>
-</div>
+		<a class="navbar-brand fw-bold text-primary" n:href="Administration:default">
+			Administrace
+		</a>
+
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminTopMenu">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+
+		<div class="collapse navbar-collapse" id="adminTopMenu">
+
+			<div class="navbar-nav me-auto">
+				{foreach $menu as $m}
+					<a class="nav-link" href="{$m['link']}">
+						<i class="{$m['icon']}"></i>
+						{$m['title']}
+					</a>
+				{/foreach}
+			</div>
+
+			<div class="navbar-nav ms-auto">
+				{if !$user->isLoggedIn()}
+					<span class="navbar-text">Nepřihlášený</span>
+				{else}
+					<span class="navbar-text me-3">
+						{$user->getIdentity()->email}
+					</span>
+					<a class="nav-link" href="{link Logout!}">
+						<i class="bi bi-box-arrow-right"></i>
+						Odhlásit se
+					</a>
+				{/if}
+			</div>
+		</div>
+	</div>
+</nav>

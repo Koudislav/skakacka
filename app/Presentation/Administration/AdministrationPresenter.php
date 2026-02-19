@@ -223,6 +223,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		$dirsProcessed = [];
 		foreach ($dirs as $dir) {
+			$name = $dir->getBasename();
+
+			if (str_starts_with($name, '.')) {
+				continue;
+			}
+
 			$dirsProcessed[] = [
 				'relativePath' => str_replace(realpath(self::UPLOAD_DIR), '', rtrim($dir->getRealPath(), DIRECTORY_SEPARATOR)),
 				'name' => $dir->getBasename(),
@@ -234,6 +240,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		$filesProcessed = [];
 		foreach ($files as $file) {
+			$name = $file->getBasename();
+
+			if (str_starts_with($name, '.')) {
+				continue;
+			}
+
 			$ext = strtolower($file->getExtension());
 			$relative = str_replace(realpath(self::WWW_DIR), '', $file->getRealPath());
 		
@@ -448,6 +460,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$form->addText('seo_description', 'SEO popis:')
 			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití SEO description ze sekce NASTAVENÍ.');
 
+		$form->addText('og_image', 'og image:')
+			->setHtmlAttribute('placeholder', 'obrázek pro sociální sítě (relativní cesta od kořene webu, např. /upload/obrazek.jpg)');
+
 		$form->addTextArea('content', 'Obsah:')
 			->setHtmlAttribute('rows', 10)
 			->setHtmlAttribute('class', 'tiny-editor');
@@ -469,6 +484,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				'is_published' => $articleData->is_published == 1,
 				'seo_title' => $articleData->seo_title,
 				'seo_description' => $articleData->seo_description,
+				'og_image' => $articleData->og_image,
 			]);
 		}
 
@@ -1018,5 +1034,41 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	// 	}
 	// 	$this->sendJson(['status' => 'ok']);
 	// }
+
+	public function handleDeleteUpload(string $path): void {
+		bdump($path);
+		if (!$this->getUser()->isLoggedIn()) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+
+		$uploadDir = realpath(self::UPLOAD_DIR);
+		$fullPath = realpath(self::WWW_DIR . $path);
+
+		bdump([
+			'uploadDir' => $uploadDir,
+			'fullPath' => $fullPath,
+		]);
+		if (!$fullPath || !str_starts_with($fullPath, $uploadDir)) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+
+		try {
+			if (is_dir($fullPath)) {
+				FileSystem::delete($fullPath);
+			} elseif (is_file($fullPath)) {
+				bdump('Deleting file: ' . $fullPath);
+				unlink($fullPath);
+			}
+			bdump('File deleted');
+			$this->sendJson(['status' => 'ok']);
+		} catch (\Nette\Application\AbortException $e) {
+			throw $e;
+		} catch (\Throwable $e) {
+			\Tracy\Debugger::log($e, 'upload-delete');
+			$this->sendJson(['status' => 'error']);
+		}
+	}
 
 }

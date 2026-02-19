@@ -27,6 +27,8 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 	/** @var ContactFormControlFactory @inject */
 	public $contactFormControlFactory;
 
+	private const WWW_DIR = __DIR__ . '/../../../www';
+
 	public function actionDefault(string $slug): void {
 		$article = $this->articleRepository->getBySlug($slug);
 
@@ -39,6 +41,15 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 		$this->template->articleContent = $articleContent;
 		$this->template->article = $article;
+
+		if (!empty($article->og_image)){
+			if (str_starts_with($article->og_image, 'http://') || str_starts_with($article->og_image, 'https://')) {
+				$this->seo->ogImage = $article->og_image; // externí URL
+			} elseif (realpath(self::WWW_DIR . $article->og_image)) {
+				$baseUrl = rtrim($this->getHttpRequest()->getUrl()->getBaseUrl(), '/');
+				$this->seo->ogImage = $baseUrl . $article->og_image; // relativní cesta k www
+			}
+		}
 
 		$this->seo->breadcrumbs = [
 			$this->homeString => $this->link('//Home:default'),

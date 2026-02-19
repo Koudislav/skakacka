@@ -44,7 +44,11 @@ class SitemapGenerator {
 
 	public function generate(): void {
 		$xml = $this->buildXml();
-		FileSystem::write($this->xmlPath, $xml);
+		try {
+			FileSystem::write($this->xmlPath, $xml);
+		} catch (\Nette\IOException $e) {
+			//fuck windows
+		}
 	}
 
 	private function buildXml(): string {

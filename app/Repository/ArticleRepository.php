@@ -38,7 +38,7 @@ class ArticleRepository {
 		if ($article) {
 			$data = [];
 			$update = false;
-			$toUpdate = ['title', 'slug', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description'];
+			$toUpdate = ['title', 'slug', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description', 'og_image'];
 			foreach ($toUpdate as $key) {
 				$data[$key] = is_bool($values->$key) ? ($values->$key ? 1 : 0) : $values->$key;
 
@@ -77,6 +77,7 @@ class ArticleRepository {
 			'is_published' => $values->is_published ? 1 : 0,
 			'seo_title' => $values->seo_title ?: null,
 			'seo_description' => $values->seo_description ?: null,
+			'og_image' => $values->og_image ?: null,
 			'created_at' => new \DateTime(),
 			'created_by' => $userId,
 		];
