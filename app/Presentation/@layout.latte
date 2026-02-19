@@ -64,11 +64,29 @@
 								form.submit();
 							});
 						});
-
 					});
 				});
 			};
 		});
+
+		{if $ga4Id}
+		//Konverze na kontakt formu
+			const contactForm = document.getElementById('frm-contactForm-form');
+			if (contactForm) {
+				console.log('Adding submit event listener to contact form');
+				contactForm.addEventListener('submit', function() {
+					let converseData = {
+						'event_category': 'form', 
+						'event_label': 'kontaktní formulář',
+					};
+					{ifset $ga4Stream}
+						converseData.stream_id = {$ga4Stream};
+					{/ifset}
+					gtag('event', 'submit', converseData);
+				});
+			};
+		{/if}
+
 	</script>
 	{/block}
 </body>

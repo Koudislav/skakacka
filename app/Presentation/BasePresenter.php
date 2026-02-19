@@ -55,6 +55,9 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 		if (!empty($this->config['ga4_id'])) {
 			$this->template->ga4Id = $this->config['ga4_id'];
+			if (!empty($this->config['ga4_stream_id'])) {
+				$this->template->ga4Stream = $this->config['ga4_stream_id'];
+			}
 		}
 	}
 
