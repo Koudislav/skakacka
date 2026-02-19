@@ -31,6 +31,7 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	public function actionDefault(string $slug): void {
 		$article = $this->articleRepository->getBySlug($slug);
+		bdump($article);
 
 		if (!$article) {
 			$this->error('Článek nenalezen'); // 404
@@ -41,20 +42,7 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 		$this->template->articleContent = $articleContent;
 		$this->template->article = $article;
-
-		if (!empty($article->og_image)){
-			if (str_starts_with($article->og_image, 'http://') || str_starts_with($article->og_image, 'https://')) {
-				$this->seo->ogImage = $article->og_image; // externí URL
-			} elseif (realpath(self::WWW_DIR . $article->og_image)) {
-				$baseUrl = rtrim($this->getHttpRequest()->getUrl()->getBaseUrl(), '/');
-				$this->seo->ogImage = $baseUrl . $article->og_image; // relativní cesta k www
-			}
-		}
-
-		$this->seo->breadcrumbs = [
-			$this->homeString => $this->link('//Home:default'),
-			$article->title => $this->link('//Article:default', ['slug' => $article->slug]),
-		];
+		$this->overwriteSeo($article);
 	}
 
 	public function renderContactFormSnippet(): string {
@@ -97,6 +85,31 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 		};
 
 			return $c;
+	}
+
+	protected function overWriteSeo($article): void {
+		if (!empty($article->og_image)){
+			if (str_starts_with($article->og_image, 'http://') || str_starts_with($article->og_image, 'https://')) {
+				$this->seo->ogImage = $article->og_image; // externí URL
+			} elseif (realpath(self::WWW_DIR . $article->og_image)) {
+				$baseUrl = rtrim($this->getHttpRequest()->getUrl()->getBaseUrl(), '/');
+				$this->seo->ogImage = $baseUrl . $article->og_image; // relativní cesta k www
+			}
+		}
+
+		$this->seo->title = !empty($article->seo_title) ? $article->seo_title : $article->title;
+		$this->seo->ogTitle = !empty($article->seo_title) ? $article->seo_title : $article->title;
+
+		if (!empty($article->seo_description)) {
+			$this->seo->description = $article->seo_description;
+			$this->seo->ogDescription = $article->seo_description;
+		}
+
+		$this->seo->breadcrumbs = [
+			$this->homeString => $this->link('//Home:default'),
+			$article->title => $this->link('//Article:default', ['slug' => $article->slug]),
+		];
+		$this->template->seo = $this->seo;
 	}
 
 }

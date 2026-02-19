@@ -52,6 +52,10 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			$this->sitemapGenerator->generate();
 		}
 		$this->seoData();
+
+		if (!\Tracy\Debugger::isEnabled() && !empty($this->config['ga4_id'])) {
+			$this->template->ga4Id = $this->config['ga4_id'];
+		}
 	}
 
 	public function beforeRender() {
