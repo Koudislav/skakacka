@@ -53,7 +53,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		}
 		$this->seoData();
 
-		if (!\Tracy\Debugger::isEnabled() && !empty($this->config['ga4_id'])) {
+		if (!empty($this->config['ga4_id'])) {
 			$this->template->ga4Id = $this->config['ga4_id'];
 		}
 	}
