@@ -20,7 +20,7 @@ class Config implements \ArrayAccess {
 		$this->config = $this->loadConfig();
 	}
 
-	public function getArray(): array {
+	public function toArray(): array {
 		return $this->config;
 	}
 

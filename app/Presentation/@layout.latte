@@ -3,7 +3,12 @@
 <head>
 	{include '@head.latte'}
 
-	<title>{ifset title}{include title|stripHtml} | {/ifset}Skákačka</title>
+	<title>
+		{ifset title}{include title|stripHtml}{/ifset}
+		{if !empty($config['seo_title_constant'])}
+			{$config['seo_title_constant']|stripHtml}
+		{/if}
+	</title>
 
 	{asset? 'main.js'}
 </head>

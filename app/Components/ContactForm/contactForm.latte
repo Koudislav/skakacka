@@ -1,3 +1,12 @@
 <div class="contact-form">
-	{control form}
+	{form form, class: "p-3 bg-light rounded shadow-sm", style: "max-width:500px; margin:auto;"}
+		{input name, class: "form-control form-control-sm mb-1"}
+		{input email, class: "form-control form-control-sm mb-1"}
+		{input phone, class: "form-control form-control-sm mb-1"}
+		{input message, class: "form-control form-control-sm mb-1"}
+		{input recaptchaToken}
+		<div class="text-center">
+			{input send, class: "btn btn-user-secondary btn-sm"}
+		</div>
+	{/form}
 </div>

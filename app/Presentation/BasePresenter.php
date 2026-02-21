@@ -154,7 +154,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			}
 
 			if (!empty($item['link']) && !empty($item['item'])) {
-				bdump($item);
 				$item['isActive'] = (
 					$this->isLinkCurrent($item['item']['presenter'] . ':' . $item['item']['action'], $item['item']['params'] ? json_decode($item['item']['params'], true) : [])
 					|| ($item['item']['presenter'] === 'Gallery' && $this->getName() === 'Gallery')

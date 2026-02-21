@@ -53,8 +53,6 @@ class ContactFormControl extends Control {
 	}
 
 	public function process(Form $form, \stdClass $values): void {
-
-		bdump($values);
 		if (!$this->reCaptcha->verify(
 			$values->recaptchaToken,
 			$this->httpRequest->getRemoteAddress()

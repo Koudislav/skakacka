@@ -1,5 +1,4 @@
 {snippet calendar}
-{dump}
 <div class="calendar calendar-{$mode}">
 
 	<div class="calendar-header">
@@ -24,7 +23,6 @@
 		{foreach $weeks as $week}
 			<tr>
 				{foreach $week as $cell}
-					{dump $cell}
 					<td n:class="$today === ($cell['date'] ?? null) ? 'today', calendar-day">
 						{if $cell}
 							<div class="day-number">{$cell['day']}</div>

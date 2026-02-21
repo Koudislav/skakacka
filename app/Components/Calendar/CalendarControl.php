@@ -53,7 +53,6 @@ final class CalendarControl extends Control {
 	}
 
 	public function handleToggleDay(string $date): void {
-		bdump("Toggle day: $date");
 		$dateObj = DateTimeImmutable::createFromFormat('Y-m-d', $date);
 		$this->year = (int)$dateObj->format('Y');
 		$this->month = (int)$dateObj->format('n');

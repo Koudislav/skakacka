@@ -31,7 +31,6 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	public function actionDefault(string $slug): void {
 		$article = $this->articleRepository->getBySlug($slug);
-		bdump($article);
 
 		if (!$article) {
 			$this->error('Článek nenalezen'); // 404

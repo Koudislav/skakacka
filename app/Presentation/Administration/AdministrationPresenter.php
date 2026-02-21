@@ -42,13 +42,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	/** @var \App\Service\ImageService @inject */
 	public ImageService $imageService;
 
-	// /** @var \App\Repository\CalendarRepository @inject */
-	// public \App\Repository\CalendarRepository $calendarRepository;
-
-	// public $calendarYear;
-	// public $calendarMonth;
-
 	public const WWW_DIR = __DIR__ . '/../../../www';
+	public const TEMP_DIR = __DIR__ . '/../../../temp';
 	public const UPLOAD_DIR = self::WWW_DIR . '/upload';
 
 	public const MENU = [
@@ -93,12 +88,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'title' => 'Nastavení',
 			'onlyForLoggedIn' => true,
 		],
-		// [
-		// 	'action' => 'Administration:calendarBinary',
-		// 	'icon' => 'bi bi-calendar-event',
-		// 	'title' => 'Kalendář',
-		// 	'onlyForLoggedIn' => true,
-		// ],
 	];
 
 	public const ARTICLE_TYPES = [
@@ -294,34 +283,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->template->items = $this->configurationRepository->getByCategory($category);
 	}
 
-	// public function actionCalendarBinary(?int $year = null, ?int $month = null): void {
-	// 	if (!$this->user->isLoggedIn()) {
-	// 		$this->flashMessage('Nemáte oprávnění.', 'danger');
-	// 		$this->redirect('Administration:default');
-	// 	}
-
-	// 	$now = new \DateTimeImmutable();
-
-	// 	$this->calendarYear = $year ?? (int) $now->format('Y');
-	// 	$this->calendarMonth = $month ?? (int) $now->format('n');
-	// }
-
-	// public function renderCalendarBinary(): void {
-	// 	$from = (new \DateTimeImmutable("{$this->calendarYear}-{$this->calendarMonth}-01"))
-	// 		->modify('first day of this month')
-	// 		->setTime(0, 0);
-
-	// 	$to = $from
-	// 		->modify('last day of this month')
-	// 		->setTime(23, 59, 59);
-
-	// 	$this->template->year = $this->calendarYear;
-	// 	$this->template->month = $this->calendarMonth;
-
-	// 	$this->template->binaryDays = $this->calendarRepository
-	// 		->getBinaryData($from, $to);
-	// }
-
 	//components
 	protected function createComponentLoginForm() {
 		return $this->loginFormFactory->create([$this, 'loginFormSubmitted']);
@@ -349,20 +310,32 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			}
 
 			$label = $item->description ?? $item->key;
+			$isColor = str_starts_with($item->key, 'hex_pick_');
 
-			$control = match ($item->type) {
-				'bool' => $form->addCheckbox($item->key, $label)
-					->setDefaultValue((bool) $item->value_bool),
+			if ($isColor) {
+				$control = $form->addText($item->key, $label)
+					->setDefaultValue($item->value_string)
+					->setHtmlType('color')
+					->addRule(
+						Form::Pattern,
+						'Zadejte platný HEX kód barvy',
+						'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+					);
+			} else {
+				$control = match ($item->type) {
+					'bool' => $form->addCheckbox($item->key, $label)
+						->setDefaultValue((bool) $item->value_bool),
 
-				'int' => $form->addInteger($item->key, $label)
-					->setDefaultValue($item->value_int),
+					'int' => $form->addInteger($item->key, $label)
+						->setDefaultValue($item->value_int),
 
-				'float' => $form->addText($item->key, $label)
-					->setDefaultValue($item->value_float),
+					'float' => $form->addText($item->key, $label)
+						->setDefaultValue($item->value_float),
 
-				default => $form->addText($item->key, $label)
-					->setDefaultValue($item->value_string),
-			};
+					default => $form->addText($item->key, $label)
+						->setDefaultValue($item->value_string),
+				};
+			}
 			$control->setHtmlAttribute('title', $item->key);
 		}
 
@@ -620,9 +593,19 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	//Form manipulation
 	public function configurationFormSubmitted(Form $form, \stdClass $values): void {
+		$less = false;
 		foreach ($values as $key => $value) {
 			if ($key === 'save') {
 				continue;
+			}
+			if (str_starts_with($key, 'hex_pick_')) {
+				$less = true;
+				if ($value === '' || $value === null) {
+					$value = null;
+				} elseif (!preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $value)) {
+					$form->addError('Neplatná barva u ' . $key);
+					continue;
+				}
 			}
 			$this->configurationRepository->updateValue(
 				$key,
@@ -632,6 +615,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 		$cache = new Cache($this->cacheStorage);
 		$cache->remove('app_config');
+		if ($less) {
+			FileSystem::delete(self::TEMP_DIR . '/less/config.less');
+		}
 
 		$this->flashMessage('Nastavení bylo uloženo.', 'success');
 		$this->redirect('this');
@@ -1018,25 +1004,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$this->sendJson(['status' => 'ok']);
 	}
 
-	// public function handleToggleDay(string $date): void {
-	// 	if (!$this->isAjax()) {
-	// 		$this->error('Invalid request');
-	// 	}
-	
-	// 	$dt = new \DateTimeImmutable($date);
-	
-	// 	$this->calendarRepository->toggleBlockingDay($dt);
-	
-	// 	if ($this->isAjax()) {
-	// 		$this->redrawControl('calendar');
-	// 	} else {
-	// 		$this->redirect('this');
-	// 	}
-	// 	$this->sendJson(['status' => 'ok']);
-	// }
-
 	public function handleDeleteUpload(string $path): void {
-		bdump($path);
 		if (!$this->getUser()->isLoggedIn()) {
 			$this->sendJson(['status' => 'error']);
 			return;
@@ -1045,10 +1013,6 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		$uploadDir = realpath(self::UPLOAD_DIR);
 		$fullPath = realpath(self::WWW_DIR . $path);
 
-		bdump([
-			'uploadDir' => $uploadDir,
-			'fullPath' => $fullPath,
-		]);
 		if (!$fullPath || !str_starts_with($fullPath, $uploadDir)) {
 			$this->sendJson(['status' => 'error']);
 			return;
@@ -1058,10 +1022,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			if (is_dir($fullPath)) {
 				FileSystem::delete($fullPath);
 			} elseif (is_file($fullPath)) {
-				bdump('Deleting file: ' . $fullPath);
 				unlink($fullPath);
 			}
-			bdump('File deleted');
 			$this->sendJson(['status' => 'ok']);
 		} catch (\Nette\Application\AbortException $e) {
 			throw $e;

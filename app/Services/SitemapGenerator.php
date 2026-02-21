@@ -30,7 +30,8 @@ class SitemapGenerator {
 
 	public function needsRegeneration(): bool {
 		return $this->cache->load('sitemap-check', function (&$dependencies) {
-			$dependencies[Cache::Expire] = '1 hour';	
+			$dependencies[Cache::Expire] = '1 hour';
+			$dependencies[Cache::Files] = [$this->xmlPath];
 			if (!file_exists($this->xmlPath)) {
 				return true;
 			}	
@@ -47,8 +48,9 @@ class SitemapGenerator {
 		try {
 			FileSystem::write($this->xmlPath, $xml);
 		} catch (\Nette\IOException $e) {
-			//fuck windows
+			file_put_contents($this->xmlPath, $xml);
 		}
+		$this->cache->remove('sitemap-check');
 	}
 
 	private function buildXml(): string {

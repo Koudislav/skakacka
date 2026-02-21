@@ -24,7 +24,6 @@ class SpecialCodesParser {
 	 */
 	public function parse(string $text): string {
 		return preg_replace_callback('/\[\[@([a-z0-9:_]+)((?:\|[a-z0-9_]+=[^|\]]*)*)\]\]/i', function ($matches) {
-			bdump($matches);
 			$action = $matches[1];
 			$paramsString = $matches[2]; // |id=6|big=Zážitkový|small=Učení
 			$params = [];
@@ -48,7 +47,6 @@ class SpecialCodesParser {
 				return $matches[0]; // ponech původní text
 			}
 
-			bdump($params);
 			// Načti fotky z DB (repository/service)
 			switch ($this->allowedActions[$action] ?? null) {
 				case 'trapezoid':

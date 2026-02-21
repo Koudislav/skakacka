@@ -52,9 +52,7 @@ final class CalendarRepository {
 
 		$out = [];
 
-		bdump($rows);
 		foreach ($rows as $row) {
-			bdump($row->day->format('Y-m-d'));
 			$out[$row->day->format('Y-m-d')] = true;
 		}
 
@@ -152,7 +150,6 @@ final class CalendarRepository {
 	}
 
 	public function toggleBlockingDay(\DateTimeImmutable $day, ?int $resourceId = null): void {
-		bdump('lala');
 		$start = $day->setTime(0, 0, 0);
 		$end   = $day->setTime(23, 59, 59);
 

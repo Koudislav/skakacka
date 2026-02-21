@@ -18,10 +18,8 @@ class MailService {
 		// fallback na default recipients z configu
 		if (empty($to)) {
 			$to = $this->configRecipients();
-			bdump($to, 'Recipients from config');
 		} elseif ($addConfigRecipients) {
 			$to = array_merge($to, $this->configRecipients());
-			bdump($to, 'Recipients merged with config');
 		}
 
 		if (empty($to)) {
@@ -50,7 +48,6 @@ class MailService {
 
 	public function configRecipients(): array {
 		$recipients = $this->config['mail_recipients'] ?? '';
-		bdump($recipients, 'Raw recipients from config');		
 		return array_filter(array_map('trim', explode(',', $recipients)));
 	}
 
