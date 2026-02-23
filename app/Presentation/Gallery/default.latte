@@ -1,5 +1,5 @@
 {block content}
-<div class="container content-container">
+<div n:class="$config['template_container_fluid'] ? container-fluid : container, content-container">
 	<h1>Galerie</h1>
 	<div class="row gx-3 gy-3">
 		{foreach $galleries as $gallery}

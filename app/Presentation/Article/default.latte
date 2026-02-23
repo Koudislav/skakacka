@@ -1,6 +1,6 @@
 {block title}{$seo->getTitle()}{/block}
 {block content}
-<div class="container content-container">
+<div n:class="$config['template_container_fluid'] ? container-fluid : container, content-container">
 	{if $article->show_title}
 		<h1>{$article->title}</h1>
 	{/if}

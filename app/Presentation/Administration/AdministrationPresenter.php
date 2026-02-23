@@ -17,6 +17,7 @@ use Nette\Caching\Cache;
 use Nette\Caching\Storage;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
+use Nette\Utils\Html;
 use Nette\Utils\Strings;
 
 final class AdministrationPresenter extends \App\Presentation\BasePresenter {
@@ -45,6 +46,16 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public const WWW_DIR = __DIR__ . '/../../../www';
 	public const TEMP_DIR = __DIR__ . '/../../../temp';
 	public const UPLOAD_DIR = self::WWW_DIR . '/upload';
+
+	public const CONF_ENUM_TRANSLATIONS = [
+		'template_menu_position' => [
+			'start' => 'Vlevo',
+			'center' => 'Uprostřed',
+			'end' => 'Vpravo',
+			'between' => 'Roztáhnout do krajů',
+			'around' => 'Roztáhnout (s mezerami kolem)',
+		],
+	];
 
 	public const MENU = [
 		[
@@ -298,9 +309,14 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		foreach ($items as $item) {
 
-			// label se jen zobrazí
 			if ($item->type === 'label') {
-				$form->addGroup($item->value_string);
+				$label = Html::el('div')
+					->addHtml(Html::el('hr'))
+					->addHtml(
+						Html::el('div', ['class' => "h4"])
+							->addText($item->description)
+					);
+				$form->addGroup($label);
 				continue;
 			}
 
@@ -331,6 +347,16 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 					'float' => $form->addText($item->key, $label)
 						->setDefaultValue($item->value_float),
+
+					'enum' => $form->addSelect(
+						$item->key,
+						$label,
+						array_combine(
+							explode(',', $item->enum_options),
+							$this::CONF_ENUM_TRANSLATIONS[$item->key] ?? explode(',', $item->enum_options)
+						)
+					)->setDefaultValue($item->value_string)
+						->setPrompt('— Vyberte —'),
 
 					default => $form->addText($item->key, $label)
 						->setDefaultValue($item->value_string),

@@ -1,8 +1,9 @@
 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 	<span class="navbar-toggler-icon"></span>
 </button>
-<div class="collapse navbar-collapse justify-content-center position-md-absolute start-50 translate-md-middle-x" id="navbarNav">
-	<ul class="navbar-nav fs-4">
+<div n:class="collapse, navbar-collapse, $navbarLayout['wrapperClass']" id="navbarNav">
+
+	<ul n:class="navbar-nav, fs-4, $navbarLayout['ulClass']">
 		{foreach $navbarMenu as $menuItem}
 			{if $menuItem['isParent']}
 			{if !empty($menuItem['children'])}
@@ -29,4 +30,5 @@
 			{/if}
 		{/foreach}
 	</ul>
+
 </div>

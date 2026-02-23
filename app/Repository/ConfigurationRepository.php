@@ -27,6 +27,7 @@ class ConfigurationRepository {
 		return $this->db->table('configuration')
 			->where('type', 'label')
 			->where('active', 1)
+			->where('sort_order', 0)
 			->order('description ASC')
 			->fetchPairs('category', 'value_string');
 	}

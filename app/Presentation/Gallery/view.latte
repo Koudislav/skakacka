@@ -1,7 +1,7 @@
 {block loader}<span class="active" id="page-loader"></span>{/block}
 
 {block content}
-<div class="container content-container">
+<div n:class="$config['template_container_fluid'] ? container-fluid : container, content-container">
 	<h1 n:block=title>{$gallery->title}</h1>
 	<div>{$gallery->description|noescape}</div>
 

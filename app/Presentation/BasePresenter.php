@@ -41,6 +41,14 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	public const MENU_CACHE_KEY = 'navbar_menu';
 
+	public const JUSTIFY_MAP = [
+		'start' => 'justify-content-start',
+		'center' => 'justify-content-center',
+		'end' => 'justify-content-end',
+		'between' => 'justify-content-between',
+		'around' => 'justify-content-around',
+	];
+
 	public function startUp() {
 		parent::startup();
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
@@ -64,6 +72,8 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	public function beforeRender() {
 		parent::beforeRender();
 		$this->template->navbarMenu = $this->processNavbarMenu();
+		$this->basicVariables();
+		$this->template->navbarLayout = $this->getNavbarLayout();
 	}
 
 	protected function createComponentArticleAsset($string) {
@@ -174,6 +184,22 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			canonical: $this->link('//this', []),
 		);
 		$this->template->seo = $this->seo;
+	}
+
+	public function basicVariables(): void {
+		$this->template->justifyMap = self::JUSTIFY_MAP;
+	}
+
+	public function getNavbarLayout(): array {
+		$pos = $this->config['template_menu_position'] ?? 'center';
+		$justifyClass = self::JUSTIFY_MAP[$pos] ?? self::JUSTIFY_MAP['center'];
+		$isWide = in_array($pos, ['between', 'around'], true);
+
+		return [
+			'wrapperClass' => $isWide ? null : $justifyClass,
+			'ulClass' => $isWide ? $justifyClass . ' w-100' : null,
+			'position' => $pos,
+		];
 	}
 
 }

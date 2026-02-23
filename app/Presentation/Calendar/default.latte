@@ -1,5 +1,5 @@
 {block content}
-<div class="container content-container">
+<div n:class="$config['template_container_fluid'] ? container-fluid : container, content-container">
 	{snippetArea calendarArea}
 		{control calendar}
 	{/snippetArea}

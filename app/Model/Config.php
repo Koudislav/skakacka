@@ -53,6 +53,16 @@ class Config implements \ArrayAccess {
 				case 'string':
 					$config[$key] = $item->value_string;
 					break;
+				case 'enum':
+					// enum_options bude např. "option1,option2,option3"
+					$options = isset($item->enum_options) ? explode(',', $item->enum_options) : [];
+					if (!in_array($item->value_string, $options, true)) {
+						$config[$key] = null; // nebo fallback
+					} else {
+						$config[$key] = $item->value_string;
+					}
+					break;
+		
 				default:
 					break;
 			}
