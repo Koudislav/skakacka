@@ -73,7 +73,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		parent::beforeRender();
 		$this->template->navbarMenu = $this->processNavbarMenu();
 		$this->basicVariables();
-		$this->template->navbarLayout = $this->getNavbarLayout();
 	}
 
 	protected function createComponentArticleAsset($string) {
@@ -188,6 +187,8 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	public function basicVariables(): void {
 		$this->template->justifyMap = self::JUSTIFY_MAP;
+		$this->template->navbarLayout = $this->getNavbarLayout();
+		$this->template->colorScheme = $this->getColorScheme();
 	}
 
 	public function getNavbarLayout(): array {
@@ -200,6 +201,16 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			'ulClass' => $isWide ? $justifyClass . ' w-100' : null,
 			'position' => $pos,
 		];
+	}
+
+	public function getColorScheme(): array {
+		$templateBg = ['template_bg_content', 'template_bg_navbar', 'template_bg_page', 'template_color_scheme'];
+		foreach ($templateBg as $bg) {
+			if (!empty($this->config[$bg])) {
+				$scheme[str_replace('template_', '', $bg)] = $this->config[$bg];
+			}
+		}
+		return $scheme;
 	}
 
 }

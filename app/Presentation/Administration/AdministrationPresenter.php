@@ -11,6 +11,7 @@ use App\Repository\ConfigurationRepository;
 use App\Repository\GalleryRepository;
 use App\Repository\UserRepository;
 use App\Service\ImageService;
+use App\Services\bootstrapHelper;
 use Nette;
 use Nette\Application\UI\Form;
 use Nette\Caching\Cache;
@@ -48,13 +49,17 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public const UPLOAD_DIR = self::WWW_DIR . '/upload';
 
 	public const CONF_ENUM_TRANSLATIONS = [
-		'template_menu_position' => [
-			'start' => 'Vlevo',
-			'center' => 'Uprostřed',
-			'end' => 'Vpravo',
-			'between' => 'Roztáhnout do krajů',
-			'around' => 'Roztáhnout (s mezerami kolem)',
+		'template_menu_position' => BootstrapHelper::BOOTSTRAP_POSITION_ENUM,
+		'template_color_scheme' => [
+			'light' => 'Světlá',
+			'dark' => 'Tmavá',
 		],
+	];
+
+	public const CONF_ENUM_METHODS = [
+		'template_bg_page' => 'enumColors',
+		'template_bg_navbar' => 'enumColors',
+		'template_bg_content' => 'enumColors',
 	];
 
 	public const MENU = [
@@ -127,6 +132,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 	public function beforeRender() {
 		$this->template->menu = $this->processMenu();
 		$this->checkConsistency();
+		$this->template->colorScheme = $this->getColorScheme();
 	}
 
 	public function actionUsers(int $userId = 0): void {
@@ -350,11 +356,8 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 					'enum' => $form->addSelect(
 						$item->key,
-						$label,
-						array_combine(
-							explode(',', $item->enum_options),
-							$this::CONF_ENUM_TRANSLATIONS[$item->key] ?? explode(',', $item->enum_options)
-						)
+						$this->configEnumLabel($label, $item),
+						$this->configEnumOptions($item)
 					)->setDefaultValue($item->value_string)
 						->setPrompt('— Vyberte —'),
 
@@ -1057,6 +1060,30 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			\Tracy\Debugger::log($e, 'upload-delete');
 			$this->sendJson(['status' => 'error']);
 		}
+	}
+
+	public function configEnumLabel(string $label, $item) {
+		if ($item->enum_options === 'bgColor') {
+			return Html::el('div')
+				->addHtml(Html::el('span')->setText($label))
+				->addHtml(Html::el('span')->class('bg-' . $item->value_string)->setHtml('&nbsp;&nbsp;&nbsp;')->setStyle('display:inline-block;margin-left:10px;'));
+		}
+		return $label;
+	}
+
+	public function configEnumOptions($item): array {
+		if (array_key_exists($item->key, self::CONF_ENUM_METHODS)) {
+			$fn = self::CONF_ENUM_METHODS[$item->key];
+			return $this->$fn($item);
+		}
+		return array_combine(
+			explode(',', $item->enum_options),
+			self::CONF_ENUM_TRANSLATIONS[$item->key] ?? explode(',', $item->enum_options)
+		);
+	}
+
+	public function enumColors($item) {
+		return BootstrapHelper::getEnum($item->enum_options) ?? [];
 	}
 
 }

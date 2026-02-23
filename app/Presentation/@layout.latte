@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" data-bs-theme="{$colorScheme['color_scheme'] ?? 'light'}">
 <head>
 	{include '@head.latte'}
 
@@ -13,7 +13,7 @@
 	{asset? 'main.js'}
 </head>
 
-<body class="d-flex flex-column min-vh-100 bg-light">
+<body class="d-flex flex-column min-vh-100{ifset $colorScheme['bg_page']} bg-{$colorScheme['bg_page']}{/ifset}">
 	{snippet flashes}
 		<div class="flashes">
 			<div n:foreach="$flashes as $flash" n:class="flash, $flash->type, alert, 'alert-' . $flash->type, 'alert-dismissible fade show'" role="alert">

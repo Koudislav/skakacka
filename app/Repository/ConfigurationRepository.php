@@ -52,6 +52,7 @@ class ConfigurationRepository {
 			$data['value_string'] = $value;
 		}
 
+		//TODO - potrebnost zmeny / nemenit nepotrebne (zaklada historii triggerem zbytecne, bobtna DB)
 		$this->db->table('configuration')
 			->where('key', $key)
 			->update($data);

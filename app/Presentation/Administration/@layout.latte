@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" data-bs-theme="{$colorScheme['color_scheme'] ?? 'light'}">
 <head>
 	{include '../@head.latte'}
 	<script src="https://cdn.tiny.cloud/1/{$config['tinymce_api_key']}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 
 	<title>{ifset title}{include title|stripHtml} | {/ifset} Administrace</title>
 	{asset? 'main.js'}
+	<meta name="robots" content="noindex, nofollow" />
 </head>
 
 <body class="d-flex flex-column min-vh-100">

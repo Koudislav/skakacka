@@ -6,11 +6,16 @@ namespace App\Model;
 
 use Nette\Caching\Storage;
 use App\Repository\ConfigurationRepository;
+use App\Services\BootstrapHelper;
 use Nette\Caching\Cache;
 
 class Config implements \ArrayAccess {
 	protected $config = [];
 	protected $cache;
+
+	public const SPECIAL_ENUMS = [
+		'bgColor',
+	];
 
 	public function __construct(
 		private Storage $storage,
@@ -54,8 +59,11 @@ class Config implements \ArrayAccess {
 					$config[$key] = $item->value_string;
 					break;
 				case 'enum':
-					// enum_options bude např. "option1,option2,option3"
-					$options = isset($item->enum_options) ? explode(',', $item->enum_options) : [];
+					if (in_array($item->enum_options, self::SPECIAL_ENUMS, true)) {
+						$options = $this->resolveSpecials($item->enum_options);
+					} else {
+						$options = isset($item->enum_options) ? explode(',', $item->enum_options) : [];
+					}
 					if (!in_array($item->value_string, $options, true)) {
 						$config[$key] = null; // nebo fallback
 					} else {
@@ -87,6 +95,13 @@ class Config implements \ArrayAccess {
 
 	public function offsetUnset($offset): void {
 		throw new \Exception\ConfigException("Mazání konfigurace za běhu: '{$offset}'");
+	}
+
+	public function resolveSpecials(string $type): array {
+		return match ($type) {
+			'bgColor' => array_keys(BootstrapHelper::BOOTSTRAP_BG_COLOR_ENUM),
+			default => [],
+		};
 	}
 
 }
