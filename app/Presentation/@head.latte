@@ -44,3 +44,8 @@
 <meta name="twitter:title" content="{$seo->getOgTitle()}" />
 <meta name="twitter:description" content="{$seo->getOgDescription()}" />
 <meta name="twitter:image" content="{$seo->getOgImage()}" />
+
+{foreach $favicons as $favicon}
+<link rel="icon" href="{$basePath}{$favicon['path']}" type="image/x-icon">
+<link rel="shortcut icon" href="{$basePath}{$favicon['path']}" type="image/x-icon">
+{/foreach}
