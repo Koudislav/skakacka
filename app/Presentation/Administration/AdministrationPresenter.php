@@ -139,6 +139,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		if ($this->getUser()->isLoggedIn()) {
 			$this->checkConsistency();
 		}
+		$this->template->favicons = $this->favicons();
 	}
 
 	public function actionUsers(int $userId = 0): void {
@@ -266,7 +267,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 				'publicPath' => $relative, // předpoklad: upload je pod www
 				'name' => $file->getBasename(),
 				'extension' => $ext,
-				'isImage' => in_array($ext, ['jpg','jpeg','png','gif','webp','svg']),
+				'isImage' => in_array($ext, ['jpg','jpeg','png','gif','webp','svg','ico']),
 			];
 		}
 

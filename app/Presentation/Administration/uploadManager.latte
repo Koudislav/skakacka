@@ -18,10 +18,19 @@
 	text-align: center;
 	margin-top: 20px;
 }
-.file-name {
+.file-name, .folder-name {
 	font-size: 13px;
 	text-align: center;
 	word-break: break-all;
+}
+.file-name {
+	position: absolute;
+	left: 0;
+	bottom: 5px;
+	max-width: 100%;
+	white-space: normal;      /* ZRUŠÍ nowrap z badge */
+	word-break: break-all;
+	overflow-wrap: anywhere;  /* modernější varianta */
 }
 .copy-btn {
 	position: absolute;
@@ -74,7 +83,7 @@
 				<div class="file-icon">
 					<i class="bi bi-folder-fill text-warning"></i>
 				</div>
-				<div class="file-name">
+				<div class="folder-name">
 					{$dir['name']}
 				</div>
 			</div>
@@ -116,7 +125,7 @@
 					</div>
 				{/if}
 
-				<div class="file-name">
+				<div n:class="$file['isImage'] ? 'badge text-bg-light', file-name">
 					{$file['name']}
 				</div>
 
