@@ -26,11 +26,16 @@ class MenuRepository {
 			->fetchPairs('menu_key', 'menu_key');
 	}
 
-	public function findByKeyStructured(string $menuKey): array {
-		$items = $this->db->table('menus')
+	public function findByKeyStructured(string $menuKey, bool $active = false): array {
+		$query = $this->db->table('menus')
 			->where('menu_key', $menuKey)
-			->order('position')
-			->fetchAll();
+			->order('position');
+
+		if ($active) {
+			$query->where('is_active', 1);
+		}
+
+		$items = $query->fetchAll();
 
 		$tree = [];
 		foreach ($items as $item) {

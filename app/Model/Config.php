@@ -19,6 +19,7 @@ class Config implements \ArrayAccess {
 		'padding',
 		'margin',
 	];
+	public const CACHE_KEY = 'app_config';
 
 	public function __construct(
 		private Storage $storage,
@@ -33,7 +34,7 @@ class Config implements \ArrayAccess {
 	}
 
 	protected function loadConfig(): array {
-		$config = $this->cache->load('app_config', function (&$dependencies) {
+		$config = $this->cache->load(self::CACHE_KEY, function (&$dependencies) {
 			$dependencies[Cache::Expire] = '10 minutes';
 			$rawConfig = $this->configurationRepository->getAll(true);
 			$config = $this->processConfig($rawConfig);

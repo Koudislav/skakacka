@@ -651,7 +651,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			);
 		}
 
-		$this->cache->remove('app_config');
+		$this->cache->remove(\App\Model\Config::CACHE_KEY);
 		if ($less) {
 			FileSystem::delete(self::TEMP_DIR . '/less/config.less');
 			FileSystem::delete(self::WWW_DIR . '/assets/css/styles.css');

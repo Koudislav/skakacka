@@ -193,6 +193,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		$this->template->navbarLayout = $this->getNavbarLayout();
 		$this->template->colorScheme = $this->getColorScheme();
 		$this->template->templateSpacing = $this->getTemplateSpacing();
+		$this->template->favicons = $this->favicons();
 	}
 
 	public function getNavbarLayout(): array {
@@ -236,6 +237,16 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			}
 		}
 		return $logoPath;
+	}
+
+	public function favicons(): array {
+		$favicons = [];
+		if (is_file(__DIR__ . self::WWW_PATH . '/upload/favicon.ico')) {
+			$favicons[] = ['path' => '/upload/favicon.ico'];
+		} else {
+			$favicons[] = ['path' => '/favicon.ico'];
+		}
+		return $favicons;
 	}
 
 }
