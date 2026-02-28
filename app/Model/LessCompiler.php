@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\Config\Config;
 use Less_Cache;
 use Nette\Utils\FileSystem;
 

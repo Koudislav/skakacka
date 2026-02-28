@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Error\Error4xx;
 
 use App\Components\ArticleAsset\ArticleAssetControlFactory;
-use App\Model\Config;
+use App\Config\Config;
 use App\Model\LessCompiler;
 use App\Presentation\BasePresenter;
 use App\Repository\MenuRepository;

@@ -7,7 +7,7 @@ services:
 	authenticator: App\Model\UserAuthenticator
 
 	- App\Model\LessCompiler(%appDir%/../assets/less, %tempDir%/less, %wwwDir%/assets/css, %wwwDir%, %debugMode%)
-	config: App\Model\Config(@cacheStorage)
+	config: App\Config\Config(@cacheStorage)
 
 	- App\Service\ImageService(%wwwDir%)
 	- App\Service\SitemapGenerator(%wwwDir%)

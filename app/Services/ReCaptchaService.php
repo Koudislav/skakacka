@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use ReCaptcha\ReCaptcha;
-use App\Model\Config;
+use App\Config\Config;
 
 class ReCaptchaService {
 

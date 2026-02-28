@@ -1,0 +1,156 @@
+/*!
+ * Add-on for including N1ED content builder into your TinyMCE
+ * Developer: N1ED
+ * Website: https://n1ed.com/
+ * License: GPL v3
+ */
+
+
+/*
+ *   HOW TO INSTALL THIS ADD-ON
+ *
+ *   1. Copy the plugin into
+ *
+ *        tinymce/
+ *          plugins/
+ *            n1ed/
+ *              plugin.js
+ *              plugin.min.js
+ *
+ *   2. Add "n1ed" into "plugins" config option
+ *   3. Done
+ *
+ *
+ *   VISUAL CONFIGURATION
+ *
+ *   Configure N1ED visually using the Dashboard:
+ *
+ *       https://n1ed.com/dashboard
+ *
+ *   Get there an API key to link with your installation.
+ *   Specify it as a TinyMCE parameter:
+ *
+ *       apiKey: "..."
+ */
+
+(function() {
+
+    var PLUGIN_NAME = "n1ed";
+    var DEFAULT_API_KEY = "N1ED24RR1234123412341234";
+
+    window.n1edPluginVersion=202508001;
+    window.n1edPluginEditor="tinymce";
+
+    function get(varName, defaultValue) {
+        if (window[varName] !== undefined)
+            return window[varName];
+        else
+            return defaultValue;
+    }
+
+    var apiKey;
+
+
+    var editor = null;
+    var majorVersion = null;
+    if (!!window.hugerte || !!window.hugeRTE) {
+        editor = window.hugerte || window.hugeRTE;
+        majorVersion = editor.majorVersion + 5;
+    } else {
+        editor = window.tinymce || window.tinyMCE;
+        majorVersion = editor.majorVersion;
+    }
+
+    if (majorVersion >= 6) {
+
+        function getTinyMCE6Option(name, type) {
+            for (var i=0; i<editor.get().length; i++) {
+                var options = editor.get()[i].options;
+                var defaultValue = false;
+                if (type === "string")
+                    defaultValue = "";
+                else if (type === "object")
+                    defaultValue = {};
+                options.register(name, {processor: type, default: defaultValue});
+                if (options.isSet(name))
+                    return options.get(name);
+            }
+            return null;
+        }
+
+        apiKey = getTinyMCE6Option("apiKey", "string");
+        if (!apiKey) {
+            var flmngrOpts = getTinyMCE6Option("Flmngr", "object");
+            if (!!flmngrOpts && !!flmngrOpts["apiKey"])
+                apiKey = flmngrOpts["apiKey"];
+        }
+
+    } else {
+        apiKey = editor.settings.apiKey;
+        if (!apiKey) {
+            var flmngrOpts = editor.settings.Flmngr;
+            if (!!flmngrOpts && !!flmngrOpts["apiKey"])
+                apiKey = flmngrOpts["apiKey"];
+        }
+
+        if (!apiKey) {
+            for (var i = 0; i < editor.editors.length && !apiKey; i++) {
+                apiKey = editor.editors[i].getParam("apiKey");
+                if (!apiKey) {
+                    var flmngrOpts = editor.editors[i].getParam("Flmngr");
+                    if (!!flmngrOpts && !!flmngrOpts["apiKey"])
+                        apiKey = flmngrOpts["apiKey"];
+                }
+            }
+        }
+
+    }
+    window.TINYMCE_OVERRIDE_API_KEY_PARAM = "OVERRIDE_API_KEY";
+    apiKey = window.OVERRIDE_API_KEY || apiKey || DEFAULT_API_KEY;
+
+    var version = get("N1ED_VERSION", "latest");
+    var n1edPrefix = get("N1ED_PREFIX", null);
+    var n1edHttps = get("N1ED_HTTPS", true);
+
+    var protocol = n1edHttps ? "https" : "http";
+
+    var host = (n1edPrefix ? (n1edPrefix + ".") : "") + "cloud.n1ed.com";
+    var urlPlugin = protocol + "://" + host + "/a/" + apiKey + "/plugins/N1EDEco/plugin.js";
+
+    // Load Ecosystem plugin manually due to
+    // TinyMCE will not accept external_plugins option on the fly
+    editor.PluginManager.load("N1EDEco",  urlPlugin);
+
+    editor.PluginManager.add(
+        PLUGIN_NAME,
+        function(ed, url) {
+            // TinyMCE 6 does not initialize dependency plugins automatically
+            if (majorVersion >= 6)
+                editor.PluginManager.get("N1EDEco")(ed, url);
+        },
+        ["N1EDEco"] // We can not move Ecosystem in this file due to we need to dynamically
+        // embed configuration from your Dashboard into it.
+        // So Ecosystem add-on can be loaded only from CDN
+    );
+
+    function applyPatch() {
+        window.applyPatch && window.applyPatch(PLUGIN_NAME, window.n1edPluginVersion, apiKey);
+    }
+    var script = document.createElement('script');
+    script.type = "text/javascript";
+    script.src = protocol + "://" + host + "/static/pluginPatch.js";
+    document.head.appendChild(script);
+    if (script.readyState) {  //IE
+        script.onreadystatechange = function () {
+            if (script.readyState === "loaded" || script.readyState === "complete") {
+                script.onreadystatechange = null;
+                applyPatch();
+            }
+        };
+    } else {  //Others
+        script.onload = function () {
+            applyPatch();
+        };
+    }
+
+})();

@@ -6,7 +6,7 @@ namespace App\Presentation;
 
 use Nette;
 use App\Components\ArticleAsset\ArticleAssetControlFactory;
-use App\Model\Config;
+use App\Config\Config;
 use App\Model\LessCompiler;
 use App\Model\Seo\SeoData;
 use App\Repository\MenuRepository;

@@ -74,7 +74,7 @@
 			};
 		});
 
-		{if $ga4Id}
+		{if $ga4Id ?? null}
 		//Konverze na kontakt formu
 			const contactForm = document.getElementById('frm-contactForm-form');
 			if (contactForm) {
@@ -84,9 +84,9 @@
 						'event_category': 'form', 
 						'event_label': 'kontaktní formulář',
 					};
-					{ifset $ga4Stream}
+					{if $ga4Stream ?? null}
 						converseData.stream_id = {$ga4Stream};
-					{/ifset}
+					{/if}
 					gtag('event', 'submit', converseData);
 				});
 			};

@@ -6,7 +6,7 @@ namespace App\Service;
 
 use Nette\Mail\Message;
 use Nette\Mail\SmtpMailer;
-use App\Model\Config;
+use App\Config\Config;
 
 class MailService {
 

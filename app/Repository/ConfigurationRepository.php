@@ -24,7 +24,7 @@ class ConfigurationRepository {
 	}
 
 	public function getCategories(): array {
-		return $this->db->table('configuration')
+		return $this->db->table(self::CONFIGURATION_TABLE)
 			->where('type', 'label')
 			->where('active', 1)
 			->where('sort_order', 0)
@@ -40,7 +40,8 @@ class ConfigurationRepository {
 	}
 
 	public function updateValue(string $key, mixed $value, int $userId): void {
-		$data = ['edited_by' => $userId];
+		$editedColumn = 'edited_by';
+		$data = [$editedColumn => $userId];
 
 		if (is_bool($value)) {
 			$data['value_bool'] = $value;
@@ -52,10 +53,24 @@ class ConfigurationRepository {
 			$data['value_string'] = $value;
 		}
 
-		//TODO - potrebnost zmeny / nemenit nepotrebne (zaklada historii triggerem zbytecne, bobtna DB)
-		$this->db->table('configuration')
+		$line = $this->db->table(self::CONFIGURATION_TABLE)
 			->where('key', $key)
-			->update($data);
+			->fetch();
+
+		$update = false;
+		foreach ($data as $column => $val) {
+			if ($column !== $editedColumn && $line->$column != $val) {
+				$update = true;
+			}
+		}
+		if ($update) {
+			$line->update($data);
+		}
+	}
+
+	public function insert(array $data): void {
+		$this->db->table(self::CONFIGURATION_TABLE)
+			->insert($data);
 	}
 
 }

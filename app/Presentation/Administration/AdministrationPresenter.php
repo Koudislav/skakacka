@@ -9,6 +9,7 @@ use App\Forms\LoginFormFactory;
 use App\Repository\ArticleRepository;
 use App\Repository\ConfigurationRepository;
 use App\Repository\GalleryRepository;
+use App\Repository\TemplateRepository;
 use App\Repository\UserRepository;
 use App\Service\ImageService;
 use App\Services\bootstrapHelper;
@@ -28,6 +29,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var ArticleRepository @inject */
 	public $articleRepository;
+
+	/** @var TemplateRepository @inject */
+	public $templateRepository;
 
 	/** @var ConfigurationRepository @inject */
 	public $configurationRepository;
@@ -85,6 +89,12 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			'action' => 'Administration:articles',
 			'icon' => 'bi bi-file-earmark-text',
 			'title' => 'Články',
+			'onlyForLoggedIn' => true,
+		],
+		[
+			'action' => 'Administration:templates',
+			'icon' => 'bi bi-file-earmark-code',
+			'title' => 'Šablony článků',
 			'onlyForLoggedIn' => true,
 		],
 		[
@@ -169,6 +179,13 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 	}
 
+	public function actionTemplates(int $templateId = 0): void {
+		if (!$this->user->isLoggedIn()) {
+			$this->flashMessage('Pro přístup na tuto stránku se musíte přihlásit.', 'danger');
+			$this->redirect('Administration:default');
+		}
+	}
+
 	public function renderArticles(int $articleId = 0): void {
 		$this->template->currentArticleId = $articleId;
 		$data = $this->articleRepository->findAll();
@@ -185,6 +202,17 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 		$this->template->articleName = $data[$articleId]->title ?? null;
 		$this->template->menus = $indexes + $articles;
+	}
+
+	public function renderTemplates(int $templateId = 0): void {
+		$this->template->currentTemplateId = $templateId;
+		$data = $this->templateRepository->findAll();
+		$templates = [];
+		foreach ($data as $key => $article) {
+			$templates[$key] = $article;
+		}
+		$this->template->templateName = $data[$templateId]->name ?? null;
+		$this->template->menus = $templates;
 	}
 
 	public function actionMenus(?string $menuKey, ?string $newMenu, ?int $menuId): void {
@@ -372,6 +400,9 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 						->setDefaultValue($item->value_string),
 				};
 			}
+			if ($item->type === 'enum') {
+				$this->colorizeSelect($control, $item);
+			}
 			$control->setHtmlAttribute('title', $item->key);
 		}
 
@@ -380,6 +411,17 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 		$form->onSuccess[] = [$this, 'configurationFormSubmitted'];
 		return $form;
+	}
+
+	private function colorizeSelect($select, $item): void {
+		if (isset(self::CONF_ENUM_METHODS[$item->key]) && self::CONF_ENUM_METHODS[$item->key] === 'enumColors') {
+			if (!empty($item->value_string)) {
+				$select->setHtmlAttribute('data-bg-color', 'bg-' . $item->value_string)
+					->setHtmlAttribute('class', 'bg-' . $item->value_string);
+			} else {
+				$select->setHtmlAttribute('data-bg-color', '');
+			}
+		}
 	}
 
 	public function createComponentUserForm() {
@@ -498,6 +540,32 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 		}
 
 		$form->onSuccess[] = [$this, 'articleFormSubmitted'];
+
+		return $form;
+	}
+
+	public function createComponentTemplateForm() {
+		$form = BootstrapFormFactory::create('oneLine');
+		$templateId = (int) $this->getParameter('templateId');
+
+		$form->addText('name', 'Název šablony:')
+			->setRequired('Zadejte název šablony.');
+
+		$form->addText('description', 'Popis šablony:');
+
+		$form->addTextArea('content', 'Obsah:')
+			->setHtmlAttribute('rows', 10)
+			->setHtmlAttribute('class', 'tiny-editor');
+
+		$form->addSubmit('submit', 'Uložit')
+			->setHtmlAttribute('class', 'btn btn-primary');
+
+		if ($templateId !== 0) {
+			$templateData = $this->templateRepository->getTemplateById($templateId);
+			$form->setDefaults($templateData->toArray());
+		}
+
+		$form->onSuccess[] = [$this, 'templateFormSubmitted'];
 
 		return $form;
 	}
@@ -652,7 +720,7 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			);
 		}
 
-		$this->cache->remove(\App\Model\Config::CACHE_KEY);
+		$this->cache->remove(\App\Config\Config::CACHE_KEY);
 		if ($less) {
 			FileSystem::delete(self::TEMP_DIR . '/less/config.less');
 			FileSystem::delete(self::WWW_DIR . '/assets/css/styles.css');
@@ -732,6 +800,30 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 			}
 			$this->cache->remove(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
 			$this->redirect('Administration:articles', ['articleId' => $create['articleId']]);
+		}
+	}
+
+	public function templateFormSubmitted(Form $form, $values): void {
+		$templateId = (int) $this->getParameter('templateId');
+
+		if ($templateId !== 0) {
+			//edit
+			$update = $this->templateRepository->updateTemplate($templateId, $values, $this->getUser()->getId());
+			if (!$update) {
+				$this->flashMessage('Nebyly provedeny žádné změny.', 'danger');
+			} else {
+				$this->flashMessage('Šablona byla úspěšně upravena.', 'success');
+			}
+			$this->redirect('this');
+		} else {
+			//novy
+			$create = $this->templateRepository->createTemplate($values, $this->user->getId());
+			foreach ($create['messages'] as $message) {
+				foreach ($message as $type => $msg) {
+					$this->flashMessage($msg, $type);
+				}
+			}
+			$this->redirect('Administration:templates', ['templateId' => $create['templateId']]);
 		}
 	}
 
@@ -1108,6 +1200,27 @@ final class AdministrationPresenter extends \App\Presentation\BasePresenter {
 
 	public function enumMargin() {
 		return BootstrapHelper::getSpacingOptions('margin') ?? [];
+	}
+
+	public function handleLoadTemplates(): void {
+		$templates = [];
+		foreach ($this->templateRepository->findAll() as $row) {
+			$templates[] = [ 'id' => $row->id, 'name' => $row->name, ];
+		}
+		$this->sendJson($templates);
+	}
+	
+	// Vrátí obsah konkrétní šablony
+	public function handleLoadTemplate(int $templateId): void {
+		$template = $this->templateRepository->getTemplateById($templateId);
+		if (!$template) {
+			$this->sendJson(['error' => 'Šablona nenalezena']);
+		}
+		$this->sendJson([
+			'id' => $template->id,
+			'name' => $template->name,
+			'content' => $template->content,
+		]);
 	}
 
 }

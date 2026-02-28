@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Model\Config;
+use App\Config\Config;
 use Nette\Caching\Cache;
 use Nette\Caching\Storage;
 use Nette\Database\Explorer;

@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="cs" data-bs-theme="{$colorScheme['color_scheme'] ?? 'light'}">
+<html lang="cs"
+	data-bs-theme="{$colorScheme['color_scheme'] ?? 'light'}"
+	data-bg-cont="{!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : ''}"
+	data-content-container="{$config['template_container_fluid'] ? 'container-fluid' : 'container'}">
 <head>
 	{include '../@head.latte'}
 	<script src="https://cdn.tiny.cloud/1/{$config['tinymce_api_key']}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
@@ -67,12 +70,16 @@
 
 	{block scripts}
 	<script>
+	const theme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+	const contentBg = document.documentElement.getAttribute('data-bg-cont') || '';
+	const contentContainer = document.documentElement.getAttribute('data-content-container') || 'container';
+
 	tinymce.init({
 		selector: '.tiny-editor',
 		relative_urls: false,
 		extended_valid_elements: 'i[class]',
-		paste_data_images: false,//not base64
-		automatic_uploads: false,//not base64 upload
+		paste_data_images: false,
+		automatic_uploads: false,
 		image_file_types: 'jpg,jpeg,png,gif,webp,svg',
 
 		plugins: [
@@ -81,39 +88,64 @@
 			'link',
 			'table',
 			'image',
-			'n1ed',
 			'fullscreen',
 		],
-			external_plugins: {
-			n1ed: "https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"
-		},
-		n1ed: {
-			// Volitelné: konfigurace N1ED
-			// URL k blokům / assets / Bootstrap grid
-			grid: 'bootstrap5',  // N1ED bude používat Bootstrap 5 grid
-			customBlocks: [
-			{ name: 'card', label: 'Bootstrap Card', html: '<div class="card"><div class="card-body">Card Content</div></div>' }
-			]
-		},
+
 		toolbar_mode: 'wrap',
 		height: 500,
 		menubar: true,
 		toolbar: 'undo redo | blocks  | ' +
 				'bold italic underline | alignleft aligncenter ' +
 				'alignright alignjustify | bullist numlist outdent indent | ' +
-				'link image table | removeformat code | n1ed | fullscreen',
+				'link image table | removeformat code | loadTemplate fullscreen',
 		content_css: [
-			'//www.tiny.cloud/css/codepen.min.css',
 			'/assets/css/bootstrap.min.css',
 			'/assets/fonts/bootstrap-icons-1.11.0/bootstrap-icons.min.css',
 			{$cssFile},
 		],
-		file_picker_types: 'image',
 
-		file_picker_callback: function (callback, value, meta) {
+		setup: function (editor) {
+			editor.on('init', function () {
+				// Nastavení data-bs-theme uvnitř iframe
+				const iframeDoc = editor.getDoc();
+				if (iframeDoc && iframeDoc.documentElement) {
+					iframeDoc.documentElement.setAttribute('data-bs-theme', theme);
+					iframeDoc.body.classList.add(contentBg);
+					iframeDoc.body.classList.add(contentContainer);
+				}
+			});
+
+			editor.ui.registry.addMenuButton('loadTemplate', {
+				text: 'Načíst šablonu',
+				fetch: function(callback) {
+					// Načteme seznam šablon přes Naja
+					naja.makeRequest('POST', '/administration/default?do=loadTemplates', { }, { history: false })
+						.then(templates => {
+							const items = templates.map(t => ({
+								type: 'menuitem',
+								text: t.name,
+								onAction: function() {
+									// po kliknutí načteme obsah šablony
+									naja.makeRequest('POST', '/administration/default?do=loadTemplate', { templateId: t.id }, { history: false })
+										.then(data => {
+											if (data && data.content) {
+												editor.setContent(data.content);
+											} else {
+												alert("Šablona nebyla nalezena!");
+											}
+										})
+								}
+							}));
+							callback(items);
+						});
+				}
+			});
+		},
+
+		file_picker_types: 'image',
+		file_picker_callback: function(callback, value, meta) {
 			if (meta.filetype === 'image') {
 				window.tinyMceImageCallback = callback;
-
 				window.open(
 					'/administration/upload-manager',
 					'UploadManager',

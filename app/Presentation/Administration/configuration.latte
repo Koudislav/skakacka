@@ -13,3 +13,45 @@
 	{if $currentCategory}
 		{control configurationForm}
 	{/if}
+{/block}
+{block scripts}
+{include parent}
+	<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+	function updateColorSelect(select) {
+		const oldClass = select.dataset.bgColor;
+		const value = select.value;
+
+		// odebrání staré bg-* class
+		if (oldClass) {
+			select.classList.remove(oldClass);
+		}
+
+		// pokud není vybraná hodnota (— Vyberte —)
+		if (!value) {
+			select.dataset.bgColor = '';
+			return;
+		}
+
+		const newClass = 'bg-' + value;
+
+		// přidání nové class
+		select.classList.add(newClass);
+
+		// uložení do data atributu
+		select.dataset.bgColor = newClass;
+	}
+
+	// inicializace při načtení stránky
+	document.querySelectorAll('select[data-bg-color]').forEach(select => {
+		updateColorSelect(select);
+
+		select.addEventListener('change', function () {
+			updateColorSelect(select);
+		});
+	});
+
+});
+</script>
+{/block}

@@ -1,0 +1,21 @@
+{block blockMenu}
+<div class="list-group rounded shadow-sm">
+	<a n:href="Administration:templates, templateId: 0"
+			n:class="$currentTemplateId === 0 ? active, 'list-group-item list-group-item-action'">
+		<i class="bi bi-file-earmark-plus"></i> Nový článek
+	</a>
+
+	{foreach $menus as $menuItem}
+		<a n:href="Administration:templates, templateId: $menuItem->id"
+				n:class="$currentTemplateId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
+			{$menuItem->id}. {$menuItem->name}
+		</a>
+	{/foreach}
+</div>
+{/block}
+{block content}
+	<h1 class="h3" n:block=title>
+		Správa šablon - {if $currentTemplateId === 0}Nová šablona{else}Úprava šablony {$templateName}{/if}
+	</h1>
+	<hr>
+	{control templateForm}
