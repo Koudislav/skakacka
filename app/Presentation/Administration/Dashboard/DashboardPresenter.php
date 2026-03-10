@@ -12,6 +12,14 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 	/** @var LoginFormFactory @inject */
 	public $loginFormFactory;
 
+	public function renderDefault() {
+		if ($this->getUser()->isLoggedIn()) {
+			$this->template->dashboardHeader = 'Přehled';
+		} else {
+			$this->template->dashboardHeader = 'Přihlášení';
+		}
+	}
+
 	protected function createComponentLoginForm() {
 		return $this->loginFormFactory->create([$this, 'loginFormSubmitted']);
 	}

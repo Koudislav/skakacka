@@ -23,6 +23,10 @@ class GalleryPresenter extends \App\Presentation\BasePresenter {
 
 		$this->template->galleries = $galleries;
 		$this->template->covers = $covers;
+		$this->seo->schemaType = 'CollectionPage';
+		$this->seo->title = 'Galerie';
+		$this->seo->description = 'Přehled všech galerií s fotografiemi na našem webu.';
+		$this->seo->breadcrumbs = $this->breadcrumbs();
 	}
 
 	/**
@@ -40,6 +44,28 @@ class GalleryPresenter extends \App\Presentation\BasePresenter {
 
 		$this->template->gallery = $gallery;
 		$this->template->pictures = $pictures;
+		$this->seo->title = $gallery->title;
+		$this->seo->ogTitle = $gallery->title;
+		if ($gallery->description) {
+			$description = strip_tags($gallery->description);
+			$description = str_replace("\n", ' ', $description);
+			$description = trim(mb_substr($description, 0, 200)) . (mb_strlen($description) > 200 ? '...' : '');
+			$this->seo->description = $description;
+			$this->seo->ogDescription = $description;
+		}
+		$ogPicture = $this->galleryRepository->findCoverPictureByGalleryId($id);
+		$this->seo->schemaType = 'ImageGallery';
+		$this->seo->ogImage = $this->config['base_url'] . $ogPicture->path_big;
+		$this->seo->breadcrumbs = $this->breadcrumbs();
+		$this->seo->breadcrumbs[$gallery->title] = $this->link('//Gallery:view', ['id' => $id]);
 	}
+
+	private function breadcrumbs(): array {
+		return [
+			$this->homeString => $this->link('//Home:default'),
+			'Galerie' => $this->link('//Gallery:default'),
+		];
+	}
+
 
 }

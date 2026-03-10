@@ -1,0 +1,28 @@
+<div class="row justify-content-center">
+	<div class="col-md-5 col-lg-4 col-xl-3">
+		<div class="card shadow-sm mt-1">
+			<div class="card-body">
+				<h4 class="card-title mb-4 text-center">Přihlášení</h4>
+				<form n:name=loginForm>
+					{foreach $form->errors as $error}
+						<div class="alert alert-danger">{$error}</div>
+					{/foreach}
+					<div class="mb-3">
+						{label email /}
+						{input email}
+						<div class="invalid-feedback">
+							{inputError email}
+						</div>
+					</div>
+					<div class="mb-3">
+						{label password /}
+						{input password}
+					</div>
+					<div class="text-center">
+						{input send}
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

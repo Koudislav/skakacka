@@ -32,7 +32,7 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 	public function actionDefault(string $slug): void {
 		$article = $this->articleRepository->getBySlug($slug);
 
-		if (!$article) {
+		if (!$article || !$article->is_published) {
 			$this->error('Článek nenalezen'); // 404
 		}
 

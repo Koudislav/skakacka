@@ -33,6 +33,14 @@ final class SeoData {
 				$entities[] = $this->generateWebPage();
 				break;
 
+			case 'ImageGallery':
+				$entities[] = $this->generateImageGallery();
+				break;
+
+			case 'CollectionPage':
+				$entities[] = $this->generateCollectionPage();
+				break;
+
 			default:
 				$entities[] = $this->generateWebPage();
 		}
@@ -63,23 +71,33 @@ final class SeoData {
 		];
 	}
 
-	public function generateWebPage(): array {
-		return [
-			'@context' => 'https://schema.org',
-			'@type' => 'WebPage',
-			'name' => $this->title,
-			'description' => $this->description,
-			'url' => $this->canonical,
-		];
-	}
-
-	private function generateWebSite(): array {
+	public function generateWebSite(): array {
 		return [
 			'@context' => 'https://schema.org',
 			'@type' => 'WebSite',
 			'name' => $this->title,
 			'url' => $this->canonical,
 		];
+	}
+
+	public function generateWebPage(): array {
+		$webPage = $this->generateWebSite();
+		$webPage['@type'] = 'WebPage';
+		$webPage['description'] = $this->description;
+		return $webPage;
+	}
+
+	public function generateCollectionPage(): array {
+		$collectionPage = $this->generateWebPage();
+		$collectionPage['@type'] = 'CollectionPage';
+		return $collectionPage;
+	}
+
+	public function generateImageGallery(): array {
+		$imageGallery = $this->generateWebPage();
+		$imageGallery['@type'] = 'ImageGallery';
+		$imageGallery['image'] = is_array($this->ogImage) ? $this->ogImage : [$this->ogImage];
+		return $imageGallery;
 	}
 
 	private function generateBreadcrumbs(): array {

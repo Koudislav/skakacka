@@ -29,6 +29,7 @@ class ContactFormControl extends Control {
 
 		$form->addEmail('email', 'Email:')
 			->setRequired('Zadejte email')
+			->addRule($form::Email, 'Zadejte platnou e-mailovou adresu.')
 			->setHtmlAttribute('placeholder', 'Váš email');
 
 		$form->addText('phone', 'Telefon:')

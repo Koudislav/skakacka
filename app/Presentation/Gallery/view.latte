@@ -1,6 +1,7 @@
 {block loader}<span class="active" id="page-loader"></span>{/block}
 
 {block content}
+{dump}
 <div n:class="$config['template_container_fluid'] ? container-fluid : container,
 		!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
 		!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',

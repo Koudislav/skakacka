@@ -8,9 +8,9 @@
 </div>
 {/block}
 {block content}
+<h1 n:block=title>{$dashboardHeader}</h1>
 {if !$user->isLoggedIn()}
-	<h1 n:block=title>Přihlášení do administrace</h1>
-	{control loginForm}
+	{include '_loginForm.latte'}
 {else}
 	Jste přihlášen jako <b>{$user->getIdentity()->email}</b>.
 {/if}

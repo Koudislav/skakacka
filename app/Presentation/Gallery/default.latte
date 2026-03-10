@@ -3,15 +3,13 @@
 		!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
 		!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
 		content-container">
-	<h1>Galerie</h1>
+	<h1 n:block=title>Galerie</h1>
 	<div class="row gx-3 gy-3">
 		{foreach $galleries as $gallery}
 			{continueIf empty($covers[$gallery->id])}
 			<div class="col-6 col-md-4 col-lg-3">
 				<a class="text-decoration-none" href="{link Gallery:view, $gallery->id}">
-					<div class="card h-100 card-hover"> <!-- h-100 = karta zabírá celou výšku sloupce -->
-
-						<!-- Cover image s fixní výškou -->
+					<div class="card h-100 card-hover">
 						<img 
 							src="{$basePath}/{$covers[$gallery->id]->path_small}" 
 							class="card-img-top" 
@@ -19,14 +17,15 @@
 							style="height:200px; object-fit:cover; width:100%;">
 
 						<div class="card-body">
-							<h5 class="card-title text-truncate">{$gallery->title}</h5>
-							<p class="card-text text-truncate">
-								{if $gallery->description}
-									{$gallery->description|stripHtml}
-								{else}
-									&nbsp;
-								{/if}
-							</p>
+							<h5 class="card-title text-truncate" title="{$gallery->title}">{$gallery->title}</h5>
+						
+							{if $gallery->description}
+								<p class="card-text text-truncate" title="{$gallery->description|stripHtml|truncate(100)}">
+									{$gallery->description|stripHtml|truncate(100)}
+								</p>
+							{else}
+								<p class="card-text">&nbsp;</p>
+							{/if}
 						</div>
 					</div>
 				</a>

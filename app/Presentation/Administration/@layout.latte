@@ -24,8 +24,13 @@
 
 	{include '@adminPanel.latte'}
 	<div class="container flex-grow-1 pt-2">
+		{ifset blockMenu}
+			{var $showMenu = $user->isLoggedIn() && !empty($menu)}
+		{else}
+			{var $showMenu = false}
+		{/ifset}
 		<div class="row">
-			{ifset blockMenu}
+			{if $showMenu}
 				{* MOBILE TOGGLE BUTTON *}
 				<div class="d-lg-none mb-2">
 					<button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#adminMenuCanvas">
@@ -57,7 +62,7 @@
 				<div class="col-12">
 					{include content}
 				</div>
-			{/ifset}
+			{/if}
 		</div>
 	</div>
 

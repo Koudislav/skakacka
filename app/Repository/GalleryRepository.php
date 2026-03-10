@@ -62,6 +62,13 @@ class GalleryRepository {
 			->fetchAll();
 	}
 
+	public function findCoverPictureByGalleryId(int $id) {
+		return $this->db->table(self::PICTURES_TABLE)
+			->where('gallery_id', $id)
+			->where('is_cover', 1)
+			->fetch();
+	}
+
 	public function getGalleryListForSelect(bool $onlyPublished = false): array {
 		$query = $this->db->table(self::GALLERIES_TABLE)
 			->select('id, title')
