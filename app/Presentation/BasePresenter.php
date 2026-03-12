@@ -51,7 +51,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		'around' => 'justify-content-around',
 	];
 
-	public function startUp() {
+	public function startup() {
 		parent::startup();
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
@@ -121,13 +121,12 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		if ($this->getUser()->isLoggedIn()) {
 			$menu[] = [
 				'label' => 'Admin',
-				'link' => $this->link('Administration:default'),
+				'link' => $this->link('Administration:dashboard:default'),
 				'isParent' => false,
 				'isActive' => false,
 			];
 		}
 
-		// 🔥 oživení active stavů
 		return $this->markActiveItems($menu);
 	}
 

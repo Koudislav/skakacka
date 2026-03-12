@@ -16,6 +16,11 @@ final class RouterFactory {
 	public static function createRouter(): RouteList {
 		$router = new RouteList;
 
+		// ADMIN MODULE
+		$admin = new RouteList('Administration');
+		$admin->addRoute('administration/<presenter>/<action>[/<id>]', 'Dashboard:default');
+		$router->add($admin);
+
 		$storage = new FileStorage(__DIR__ . '/../../temp/cache');
 		$cache = new Cache($storage);
 		$slugs = $cache->load(\App\Repository\ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);

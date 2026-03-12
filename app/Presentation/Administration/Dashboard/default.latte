@@ -12,5 +12,34 @@
 {if !$user->isLoggedIn()}
 	{include '_loginForm.latte'}
 {else}
-	Jste přihlášen jako <b>{$user->getIdentity()->email}</b>.
+	<p>
+		Jste přihlášen jako <b>{$user->getIdentity()->email}</b>.
+	</p>
+
+	<div class="row">
+		<div class="col-12 card
+			{if $appDiskPercent >= 90}bg-danger-subtle{elseif $appDiskPercent >= 75}bg-warning-subtle{else}bg-success-subtle{/if}
+			">
+			<div class="card-body">
+				<div class="d-flex align-items-start justify-content-between">
+					<p>Využitý diskový prostor: <b>{$appDiskUsage}</b> z <b>{$appDiskLimit}</b> ({$appDiskPercent}%)</p>
+					<i class="bi bi-question-circle text-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+						title="Data o využitém prostoru se načítají se zpoždením až 5 minut."></i>
+				</div>
+				<div class="progress" style="height: 25px;">
+					<div class="progress-bar {if $appDiskPercent >= 90}bg-danger{elseif $appDiskPercent >= 75}bg-warning{/if}" 
+						role="progressbar"
+						style="width: {$appDiskPercent|noescape}%"
+						aria-valuenow="{$appDiskPercent}"
+						aria-valuemin="0"
+						aria-valuemax="100">
+						{$appDiskPercent}%
+					</div>
+				</div>
+				<p class="mt-1">
+					Diskový prostor je možné za příplatek rozšířit. V případě zájmu kontaktujte podporu.
+				</p>
+			</div>
+		</div>
+	</div>
 {/if}

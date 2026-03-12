@@ -72,13 +72,11 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 							->addText($item->description)
 					);
 				$form->addGroup($label);
+
 				continue;
 			}
 
-			// kontrola role
-			if ($item->access_role && !$this->user->isInRole($item->access_role)) {
-				continue;
-			}
+			$canEdit = !$item->access_role || $this->user->isInRole($item->access_role);
 
 			$label = $item->description ?? $item->key;
 			$isColor = str_starts_with($item->key, 'hex_pick_');
@@ -117,7 +115,13 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 			if ($item->type === 'enum') {
 				$this->colorizeSelect($control, $item);
 			}
-			$control->setHtmlAttribute('title', $item->key);
+			if (!$canEdit) {
+				$value = $control->getValue();
+				$control->setDisabled()->setOmitted(false);
+				$control->setDefaultValue($value)
+					->setHtmlAttribute('title', 'Nemáte oprávnění upravovat toto nastavení')
+					->setHtmlAttribute('data-bs-toggle', 'tooltip');
+			} 
 		}
 
 		$form->addSubmit('save', 'Uložit')
@@ -140,11 +144,28 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 
 	//Form manipulation
 	public function configurationFormSubmitted(Form $form, \stdClass $values): void {
+		$category = $this->getParameter('category');
+		$items = $this->configurationRepository->getByCategory($category);
+		$itemsByKey = [];
+		foreach ($items as $item) {
+			$itemsByKey[$item->key] = $item;
+		}
+
 		$less = false;
 		foreach ($values as $key => $value) {
 			if ($key === 'save') {
-				continue;
+				continue; // button
 			}
+			if (!isset($itemsByKey[$key])) {
+				continue; // neznámý parametr
+			}
+
+			$item = $itemsByKey[$key];
+			if ($item->access_role && !$this->user->isInRole($item->access_role)) {
+				continue; // nemá oprávnění
+			}
+
+
 			if (str_starts_with($key, 'hex_pick_')) {
 				$less = true;
 				if ($value === '' || $value === null) {

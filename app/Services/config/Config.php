@@ -142,6 +142,9 @@ class Config implements \ArrayAccess {
 					'sort_order' => $item['sort_order'] ?? 1000,
 					'edited_by' => null,
 				];
+				if (!empty($item['access_role'])) {
+					$data['access_role'] = $item['access_role'];
+				}
 
 				// Nastavení defaultní hodnoty podle typu
 				switch ($item['type']) {

@@ -22,6 +22,13 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 
 	public const MENU = [
 		[
+			'action' => 'Dashboard:default',
+			'icon' => 'bi bi-speedometer2',
+			'title' => 'Přehled',
+			'onlyForLoggedIn' => true,
+			 // 'accessRoles' => ['admin', 'superadmin'],
+		],
+		[
 			'action' => 'users:default',
 			'icon' => 'bi bi-people-fill',
 			'title' => 'Uživatelé',
@@ -71,8 +78,8 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 	];
 
 	
-	public function startUp() {
-		parent::startUp();
+	public function startup() {
+		parent::startup();
 		if (!$this->getUser()->isLoggedIn() && $this->getName() !== 'Administration:Dashboard') {
 			if ($this->isAjax()) {
 				$this->error('Unauthorized', 403);
@@ -86,9 +93,6 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 	public function beforeRender() {
 		$this->template->menu = $this->processMenu();
 		$this->template->colorScheme = $this->getColorScheme();
-		if ($this->getUser()->isLoggedIn()) {
-			$this->checkConsistency();
-		}
 		$this->template->favicons = $this->favicons();
 	}
 
@@ -126,7 +130,12 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 	public function checkConsistency(): void {
 		$indexArticles = $this->articleRepository->getIndexes();
 		if (!$indexArticles) {
-			$this->flashMessage('Varování: Není nastaven žádný článek jako úvodní stránka. V administraci vytvořte nový článek a nastavte jeho typ na "Úvodní stránka" + publikováno.', 'danger');
+			$unpublishedIndexArticles = $this->articleRepository->getIndexes(false);
+			if (!$unpublishedIndexArticles) {
+				$this->flashMessage('Varování: Není nastaven žádný článek jako úvodní stránka. V administraci vytvořte článek a nastavte ho jako "Úvodní stránka" + publikováno.', 'danger');
+			} else {
+				$this->flashMessage('Varování: Žádný článek typu \'Úvodní stránka\' není zveřejněn, jeden musí být publikovaný', 'danger');
+			}
 		}
 		if (count($indexArticles) > 1) {
 			$this->flashMessage('Varování: Je nastaveno více než jeden článek jako úvodní stránka. V administraci upravte články a nastavte pouze jeden z nich jako "Úvodní stránka" + publikováno.', 'danger');

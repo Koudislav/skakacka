@@ -11,7 +11,7 @@
 
 		<div class="collapse navbar-collapse" id="adminTopMenu">
 
-			<div class="navbar-nav me-auto">
+			<div class="navbar-nav me-auto flex-wrap">
 				{foreach $menu as $m}
 					<a class="nav-link" href="{$m['link']}">
 						<i class="{$m['icon']}"></i>
@@ -20,7 +20,7 @@
 				{/foreach}
 			</div>
 
-			<div class="navbar-nav ms-auto">
+			<div class="navbar-nav ms-auto flex-wrap justify-content-end">
 				{if !$user->isLoggedIn()}
 					<span class="navbar-text">Nepřihlášený</span>
 				{else}

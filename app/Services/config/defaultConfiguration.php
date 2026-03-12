@@ -28,6 +28,7 @@ final class DefaultConfiguration {
 			'description' => 'Maximalni velikost dat pro nahrani - upload souborů, galerie atd. Dle fakturace.',
 			'sort_order' => 150,
 			'default' => '500M',
+			'access_role' => 'owner',
 		],
 
 		//LICENCE
