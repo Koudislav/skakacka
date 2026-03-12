@@ -54,8 +54,10 @@ class GalleryPresenter extends \App\Presentation\BasePresenter {
 			$this->seo->ogDescription = $description;
 		}
 		$ogPicture = $this->galleryRepository->findCoverPictureByGalleryId($id);
+		if ($ogPicture && is_file(self::WWW_PATH . $ogPicture->path_big)) {
+			$this->seo->ogImage = $this->config['base_url'] . $ogPicture->path_big;
+		}
 		$this->seo->schemaType = 'ImageGallery';
-		$this->seo->ogImage = $this->config['base_url'] . $ogPicture->path_big;
 		$this->seo->breadcrumbs = $this->breadcrumbs();
 		$this->seo->breadcrumbs[$gallery->title] = $this->link('//Gallery:view', ['id' => $id]);
 	}

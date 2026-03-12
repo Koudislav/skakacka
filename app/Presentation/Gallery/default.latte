@@ -14,7 +14,8 @@
 							src="{$basePath}/{$covers[$gallery->id]->path_small}" 
 							class="card-img-top" 
 							alt="{$gallery->title}"
-							style="height:200px; object-fit:cover; width:100%;">
+							style="height:200px; object-fit:cover; width:100%;"
+							onerror="this.src='{$basePath|noescape}/assets/images/picture-not-found.webp'">
 
 						<div class="card-body">
 							<h5 class="card-title text-truncate" title="{$gallery->title}">{$gallery->title}</h5>

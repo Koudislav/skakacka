@@ -18,7 +18,8 @@
 						src="{$basePath}/{$picture->path_small}" 
 						data-medium="{$basePath}/{$picture->path_medium}"
 						alt="{$picture->description}" 
-						style="height:255px; width:auto; display:block; border-radius:5px;">
+						style="height:255px; width:auto; display:block; border-radius:5px;"
+						onerror="this.src='{$basePath|noescape}/assets/images/picture-not-found.webp'">
 				</a>
 			</div>
 		{/foreach}
