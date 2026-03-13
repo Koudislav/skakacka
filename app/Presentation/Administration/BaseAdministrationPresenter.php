@@ -29,14 +29,14 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 			 // 'accessRoles' => ['admin', 'superadmin'],
 		],
 		[
-			'action' => 'users:default',
+			'action' => 'Users:default',
 			'icon' => 'bi bi-people-fill',
 			'title' => 'Uživatelé',
 			// 'accessRoles' => ['admin', 'superadmin'],
 			'onlyForLoggedIn' => true,
 		],
 		[
-			'action' => 'menus:default',
+			'action' => 'Menus:default',
 			'icon' => 'bi bi-list',
 			'title' => 'Menu',
 			'onlyForLoggedIn' => true,
@@ -46,38 +46,37 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 			],
 		],
 		[
-			'action' => 'articles:default',
+			'action' => 'Articles:default',
 			'icon' => 'bi bi-file-earmark-text',
 			'title' => 'Články',
 			'onlyForLoggedIn' => true,
 		],
 		[
-			'action' => 'articleTemplates:default',
+			'action' => 'ArticleTemplates:default',
 			'icon' => 'bi bi-file-earmark-code',
 			'title' => 'Šablony článků',
 			'onlyForLoggedIn' => true,
 		],
 		[
-			'action' => 'galleries:default',
+			'action' => 'Galleries:default',
 			'icon' => 'bi bi-images',
 			'title' => 'Galerie',
 			'onlyForLoggedIn' => true,
 		],
 		[
-			'action' => 'uploadManager:default',
+			'action' => 'UploadManager:default',
 			'icon' => 'bi bi-images',
 			'title' => 'Upload',
 			'onlyForLoggedIn' => true,
 		],
 		[
-			'action' => 'configuration:default',
+			'action' => 'Configuration:default',
 			'icon' => 'bi bi-sliders',
 			'title' => 'Nastavení',
 			'onlyForLoggedIn' => true,
 		],
 	];
 
-	
 	public function startup() {
 		parent::startup();
 		if (!$this->getUser()->isLoggedIn() && $this->getName() !== 'Administration:Dashboard') {

@@ -21,10 +21,10 @@ final class UsersPresenter extends \App\Presentation\Administration\BaseAdminist
 	public function actionDefault(int $userId = 0): void {
 		if (!$this->user->isInRole('superadmin') && $this->user->getId() !== $userId && $userId !== 0) {
 			$this->flashMessage('Nemáte oprávnění upravovat jiného uživatele.', 'danger');
-			$this->redirect('users:default');
+			$this->redirect('Users:default');
 		}
 		if (!$this->user->isInRole('superadmin') && $userId === 0) {
-			$this->redirect('users:default', ['userId' => $this->user->getId()]);
+			$this->redirect('Users:default', ['userId' => $this->user->getId()]);
 		}
 	}
 
