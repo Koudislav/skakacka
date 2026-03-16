@@ -1,55 +1,72 @@
 {form articleForm}
-<div class="card mb-2">
-	<div class="card-header">Základní informace</div>
-	<div class="card-body">
-		{label type /}
-		{input type}
+<div class="accordion" id="articleAccordion">
+	{if $systemArticle}
+		<div class="alert alert-info">
+			<p>
+				<i class="bi bi-exclamation-triangle"></i>
+				Tento článek je systémový a nelze jej smazat ani změnit jeho typ.
+			</p>
+			{$systemArticleDescription|noescape}
+		</div>
+	{else}
+		<div class="card mb-2">
+			<div class="card-header">
+				<div class="text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#main-collapse">
+					Základní informace
+				</div>
+			</div>
+			<div class="collapse {if $mainCollapseOpen}show{/if}" id="main-collapse" data-bs-parent="#articleAccordion">
+				<div class="card-body">
+					{label type /}
+					{input type}
 
-		{label title /}
-		{input title}
+					{label title /}
+					{input title}
 
-		{input show_title}
-		{label show_title /}
+					{input show_title}
+					{label show_title /}
 
-		{label slug /}
-		{input slug}
-	</div>
-</div>
+					{label slug /}
+					{input slug}
+				</div>
+			</div>
+		</div>
+	{/if}
 
-<div class="card mb-3">
-	<div class="card-header">
-		<div class="text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#seo-collapse">
-			Pokročilé SEO a sociální sítě
+	<div n:if="!$systemArticle" class="card mb-3">
+		<div class="card-header">
+			<div class="text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#seo-collapse">
+				Pokročilé SEO a sociální sítě
+			</div>
+		</div>
+		<div class="collapse {if $seoCollapseOpen}show{/if}" id="seo-collapse" data-bs-parent="#articleAccordion">
+			<div class="card-body">
+				{label seo_title /}
+				{input seo_title}
+
+				{label seo_description /}
+				{input seo_description}
+
+				{label og_image /}
+				{input og_image}
+			</div>
 		</div>
 	</div>
-	<div class="collapse" id="seo-collapse">
-		<div class="card-body">
-			{label seo_title /}
-			{input seo_title}
-
-			{label seo_description /}
-			{input seo_description}
-
-			{label og_image /}
-			{input og_image}
-		</div>
-	</div>
 </div>
-
 
 {label content /}
 {input content}
 
 <div class="card my-3">
-	<div class="card-body d-flex justify-content-between align-items-center">
-		<div>
+	<div class="card-body d-flex justify-content-between align-items-center flex-column flex-sm-row">
+		<div n:if="!$systemArticle" class="pb-3 pb-sm-0">
 			{input is_published}
 			{label is_published /}
 		</div>
 		<div class="buttons d-flex gap-2 justify-content-end">
-			{if $currentArticleId !== 0}
+			{if !$systemArticle && $currentArticleId !== 0}
 				<a n:href="delete! articleId => $currentArticleId"
-				class="btn btn-outline-danger"
+				class="btn btn-sm btn-outline-danger"
 				onclick="return confirm('Opravdu chcete článek smazat?')">
 					Smazat článek
 				</a>

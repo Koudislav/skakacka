@@ -8,7 +8,7 @@
 	{foreach $menus as $menuItem}
 		<a n:href="default, articleId: $menuItem->id"
 				n:class="$currentArticleId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
-			
+
 			<i n:class="bi, $menuItem->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
 			<span title="{$menuItem->slug}">
 				{if $menuItem->type === 'index'}<strong>Úvodní stránka</strong> {/if}
@@ -18,9 +18,34 @@
 	{/foreach}
 </div>
 {/block}
+
 {block content}
 	<h1 class="h3" n:block=title>
 		Správa článků - {if $currentArticleId === 0}Nový článek{else}Úprava článku {$articleName}{/if}
 	</h1>
 	<hr>
 	{include '_articleForm.latte'}
+{/block}
+
+{block scripts}
+{include parent}
+<script>
+	document.addEventListener('DOMContentLoaded', function() {
+		const collapses = document.querySelectorAll('.collapse');
+		collapses.forEach(collapse => {
+			collapse.addEventListener('show.bs.collapse', () => {
+				naja.makeRequest('POST', '?do=setCollapseState', {
+					collapseId: collapse.id,
+					state: 1
+				});
+			});
+			collapse.addEventListener('hide.bs.collapse', () => {
+				naja.makeRequest('POST', '?do=setCollapseState', {
+					collapseId: collapse.id,
+					state: 0
+				});
+			});
+		});
+	});
+</script>
+{/block}

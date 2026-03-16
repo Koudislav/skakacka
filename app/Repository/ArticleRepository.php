@@ -41,7 +41,12 @@ class ArticleRepository {
 		if ($article) {
 			$data = [];
 			$update = false;
+
 			$toUpdate = ['title', 'slug', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description', 'og_image'];
+			if ($article->is_system) {
+				$toUpdate = ['content'];
+			}
+
 			foreach ($toUpdate as $key) {
 				$data[$key] = is_bool($values->$key) ? ($values->$key ? 1 : 0) : $values->$key;
 
@@ -93,18 +98,18 @@ class ArticleRepository {
 	public function generateAvailableSlug(string $slug, ?int $excludeArticleId = null): string {
 		$baseSlug = $slug;
 		$i = 0;
-	
+
 		$query = $this->db->table(self::ARTICLES_TABLE);
-	
+
 		// kontrolujeme, jestli slug je volny, pripadne pridame postfix
 		while (true) {
 			$checkSlug = $i === 0 ? $baseSlug : $baseSlug . '-' . $i;
-	
+
 			$slugQuery = $query->where('slug', $checkSlug);
 			if ($excludeArticleId !== null) {
 				$slugQuery->where('id != ?', $excludeArticleId);
 			}
-	
+
 			if ($slugQuery->count('*') === 0 && $checkSlug !== '' && !in_array($checkSlug, self::FORBIDEN_SLUGS, true)) {
 				return $checkSlug;
 			}

@@ -41,8 +41,17 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 				$articles[$key] = $article;
 			}
 		}
+
+		$systemArticle = (bool) ($data[$articleId]->is_system ?? false);
+		$this->template->systemArticle = $systemArticle;
+		if ($systemArticle) {
+			$this->template->systemArticleDescription = $data[$articleId]->system_description;
+		}
+
 		$this->template->articleName = $data[$articleId]->title ?? null;
 		$this->template->menus = $indexes + $articles;
+		$this->template->mainCollapseOpen = $articleId === 0 ? true : $this->getCollapseState('main-collapse');
+		$this->template->seoCollapseOpen = $articleId === 0 ? false : $this->getCollapseState('seo-collapse');
 	}
 
 	public function createComponentArticleForm() {
@@ -78,10 +87,14 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			->setDefaultValue(false);
 
 		$form->addSubmit('submit', 'Uložit')
-			->setHtmlAttribute('class', 'btn btn-primary');
+			->setHtmlAttribute('class', 'btn btn-sm btn-primary');
 
 		if ($articleId !== 0) {
 			$articleData = $this->articleRepository->getArticleById($articleId);
+			if ($articleData->is_system) {
+				$this->disableFieldsForSystem($form);
+			}
+
 			$form->setDefaults([
 				'type' => $articleData->type,
 				'title' => $articleData->title,
@@ -96,8 +109,15 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 		}
 
 		$form->onSuccess[] = [$this, 'articleFormSubmitted'];
-
 		return $form;
+	}
+
+	private function disableFieldsForSystem(Form $form): void {
+		foreach (['type','title','slug','show_title','is_published'] as $field) {
+			/** @var \Nette\Forms\Controls\BaseControl $control */
+			$control = $form[$field];
+			$control->setDisabled();
+		}
 	}
 
 	public function articleFormSubmitted(Form $form, $values): void {
@@ -135,6 +155,25 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			$this->flashMessage('Článek se nepodařilo smazat.', 'danger');
 		}
 		$this->redirect('default');
+	}
+
+	public function handleSetCollapseState(string $collapseId, bool $state): void {
+		$session = $this->getSession('articleAccordion');
+		$section = $session->get('sections') ?? [];
+		$section[$collapseId] = $state;
+		$session->set('sections', $section);
+		$this->terminate();
+	}
+
+	private function getCollapseState(string $id): bool	{
+		$session = $this->getSession('articleAccordion');
+		$sections = $session->get('sections') ?? [];
+		if (!empty($sections) && array_key_exists($id, $sections)) {
+			return $sections[$id];
+		} else {
+			$defaults = ['main-collapse' => true];
+			return $defaults[$id] ?? false;
+		}
 	}
 
 }

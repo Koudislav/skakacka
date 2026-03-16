@@ -31,13 +31,11 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 	public function renderDefault() {
 		if ($this->getUser()->isLoggedIn()) {
 			$this->template->dashboardHeader = 'Přehled';
+			$this->diskQuota();
+			$this->checkConsistency();
 		} else {
 			$this->template->dashboardHeader = 'Přihlášení';
 		}
-		if ($this->getUser()->isLoggedIn()) {
-			$this->checkConsistency();
-		}
-		$this->diskQuota();
 	}
 
 	protected function createComponentLoginForm() {
