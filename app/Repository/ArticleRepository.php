@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use Caxy\HtmlDiff\HtmlDiff;
 use Nette\Database\Explorer;
 use Nette\Database\Table\ActiveRow;
 use Nette\Utils\Strings;
@@ -11,6 +12,7 @@ use Nette\Utils\Strings;
 class ArticleRepository {
 
 	public const ARTICLES_TABLE = 'articles';
+	public const ARTICLES_HISTORY_TABLE = 'articles_history';
 	public const ALL_ARTICLE_SLUGS_CACHE_KEY = 'all_article_slugs';
 
 	public const FORBIDEN_SLUGS = [
@@ -170,6 +172,32 @@ class ArticleRepository {
 			'deleted_by' => $userId,
 			'slug' => $this->generateAvailableSlug('deleted-article-' . $article->slug),
 		]);
+	}
+
+	public function getHistoryByArticleId(int $articleId): array {
+		return $this->db->table(self::ARTICLES_HISTORY_TABLE)
+			->where('article_id', $articleId)
+			->order('changed_at DESC')
+			->fetchAll();
+	}
+
+	public function generateDiff(string $oldContent, string $newContent): string {
+		$oldContent = $this->normalizeHtml($oldContent);
+		$newContent = $this->normalizeHtml($newContent);
+
+		if ($oldContent === $newContent) {
+			return '<span class="text-muted">Beze změny</span>';
+		}
+		$diff = new HtmlDiff($oldContent, $newContent);
+		$diffHtml = $diff->build();
+		return $diffHtml;
+	}
+
+	private function normalizeHtml(string $html): string {
+		$html = trim($html);
+		$html = preg_replace('/\s+/', ' ', $html);
+		$html = preg_replace('/\sdata-mce-[^=]+="[^"]*"/', '', $html);
+		return $html;
 	}
 
 }

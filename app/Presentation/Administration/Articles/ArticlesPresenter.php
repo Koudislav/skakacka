@@ -50,8 +50,9 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 
 		$this->template->articleName = $data[$articleId]->title ?? null;
 		$this->template->menus = $indexes + $articles;
-		$this->template->mainCollapseOpen = $articleId === 0 ? true : $this->getCollapseState('main-collapse');
-		$this->template->seoCollapseOpen = $articleId === 0 ? false : $this->getCollapseState('seo-collapse');
+
+		$this->collapses($articleId);
+		$this->history($articleId);
 	}
 
 	public function createComponentArticleForm() {
@@ -85,6 +86,11 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 
 		$form->addCheckbox('is_published', 'Publikováno')
 			->setDefaultValue(false);
+
+		$form->addButton('preview', 'Náhled')
+			->setHtmlAttribute('class', 'btn btn-sm btn-warning')
+			->setHtmlAttribute('data-preview-link', $this->link('//:Article:preview'))
+			->setHtmlAttribute('onclick', 'showPreview(this);');
 
 		$form->addSubmit('submit', 'Uložit')
 			->setHtmlAttribute('class', 'btn btn-sm btn-primary');
@@ -162,17 +168,40 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 		$section = $session->get('sections') ?? [];
 		$section[$collapseId] = $state;
 		$session->set('sections', $section);
-		$this->terminate();
+		$this->sendJson(['state' => 'ok']);
 	}
 
-	private function getCollapseState(string $id): bool	{
+	private function collapses(int $articleId): void {
+		$default = $articleId === 0;
+		$collapses = ['main', 'seo', 'history'];
+		foreach ($collapses as $collapse) {
+			$this->template->{$collapse . 'CollapseOpen'} = $this->getCollapseState($collapse . '-collapse', $default);
+		}
+	}
+
+	private function getCollapseState(string $id, bool $default): bool	{
 		$session = $this->getSession('articleAccordion');
 		$sections = $session->get('sections') ?? [];
-		if (!empty($sections) && array_key_exists($id, $sections)) {
+		if (!$default && !empty($sections) && array_key_exists($id, $sections)) {
 			return $sections[$id];
-		} else {
-			$defaults = ['main-collapse' => true];
-			return $defaults[$id] ?? false;
+		}
+		$defaults = ['main-collapse' => true];
+		return $defaults[$id] ?? false;
+	}
+
+	private function history(int $articleId): void {
+		if ($articleId !== 0) {
+			$history = $this->articleRepository->getHistoryByArticleId($articleId);
+			if (empty($history)) return;
+
+			$history = array_values($history);
+			$diffs = [];
+			foreach ($history as $i => $h) {
+				$prevContent = $history[$i+1]->content ?? '';
+				$diffs[$h->id] = $this->articleRepository->generateDiff($prevContent, $h->content);
+			}
+			$this->template->history = $history;
+			$this->template->historyDiffs = $diffs;
 		}
 	}
 

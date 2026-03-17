@@ -31,21 +31,46 @@
 {include parent}
 <script>
 	document.addEventListener('DOMContentLoaded', function() {
-		const collapses = document.querySelectorAll('.collapse');
+		const collapses = document.querySelectorAll('.collapse.save-state');
 		collapses.forEach(collapse => {
 			collapse.addEventListener('show.bs.collapse', () => {
 				naja.makeRequest('POST', '?do=setCollapseState', {
 					collapseId: collapse.id,
 					state: 1
-				});
+				}, { history: false });
 			});
 			collapse.addEventListener('hide.bs.collapse', () => {
 				naja.makeRequest('POST', '?do=setCollapseState', {
 					collapseId: collapse.id,
 					state: 0
-				});
+				}, { history: false });
 			});
 		});
 	});
+
+	function showPreview(button) {
+		tinymce.triggerSave();
+		const form = button.closest('form');
+		const action = button.dataset.previewLink;
+		// vytvoříme dočasný form
+		const previewForm = document.createElement('form');
+		previewForm.method = 'POST';
+		previewForm.action = action;
+		previewForm.target = '_blank';
+		// zkopírujeme data z původního formuláře
+		const formData = new FormData(form);
+		for (const [key, value] of formData.entries()) {
+			// odstraníme Nette signal
+			if (key === '_do') continue;
+			const input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = key;
+			input.value = value;
+			previewForm.appendChild(input);
+		}
+		document.body.appendChild(previewForm);
+		previewForm.submit();
+		document.body.removeChild(previewForm);
+	}
 </script>
 {/block}

@@ -1,3 +1,4 @@
+{dump $history ?? null}
 {form articleForm}
 <div class="accordion" id="articleAccordion">
 	{if $systemArticle}
@@ -15,7 +16,7 @@
 					Základní informace
 				</div>
 			</div>
-			<div class="collapse {if $mainCollapseOpen}show{/if}" id="main-collapse" data-bs-parent="#articleAccordion">
+			<div class="collapse {if $mainCollapseOpen}show{/if} save-state" id="main-collapse" data-bs-parent="#articleAccordion">
 				<div class="card-body">
 					{label type /}
 					{input type}
@@ -39,7 +40,7 @@
 				Pokročilé SEO a sociální sítě
 			</div>
 		</div>
-		<div class="collapse {if $seoCollapseOpen}show{/if}" id="seo-collapse" data-bs-parent="#articleAccordion">
+		<div class="collapse {if $seoCollapseOpen}show{/if} save-state" id="seo-collapse" data-bs-parent="#articleAccordion">
 			<div class="card-body">
 				{label seo_title /}
 				{input seo_title}
@@ -49,6 +50,19 @@
 
 				{label og_image /}
 				{input og_image}
+			</div>
+		</div>
+	</div>
+
+	<div n:if="!empty($history)" class="card mb-3">
+		<div class="card-header">
+			<div class="text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#history-collapse">
+				Historie úprav
+			</div>
+		</div>
+		<div class="collapse {if $historyCollapseOpen}show{/if} save-state" id="history-collapse" data-bs-parent="#articleAccordion">
+			<div class="card-body">
+				{include '_articleHistory.latte'}
 			</div>
 		</div>
 	</div>
@@ -72,6 +86,7 @@
 				</a>
 			{/if}
 
+			{input preview}
 			{input submit}
 		</div>
 	</div>

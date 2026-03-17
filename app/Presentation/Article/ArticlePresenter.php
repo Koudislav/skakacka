@@ -44,6 +44,26 @@ class ArticlePresenter extends \App\Presentation\BasePresenter {
 		$this->overwriteSeo($article);
 	}
 
+	public function actionPreview(): void {
+		$data = $this->getHttpRequest()->getPost();
+		$article = (object) [
+			'title' => $data['title'] ?? '',
+			'content' => $data['content'] ?? '',
+			'show_title' => !empty($data['show_title']),
+			'seo_title' => $data['seo_title'] ?? '',
+			'seo_description' => $data['seo_description'] ?? '',
+			'og_image' => $data['og_image'] ?? '',
+			'slug' => '#preview',
+		];
+
+		$parser = new SpecialCodesParser($this);
+		$this->template->articleContent = $parser->parse($article->content);
+		$this->template->article = $article;
+
+		$this->overWriteSeo($article);
+		$this->setView('default');
+	}
+
 	public function renderContactFormSnippet(): string {
 		$control = $this['contactForm']; // komponenta
 

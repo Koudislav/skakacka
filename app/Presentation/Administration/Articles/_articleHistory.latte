@@ -1,0 +1,58 @@
+<style>
+ins {
+	background: #d4fcbc;
+	text-decoration: none;
+}
+del {
+	background: #fbb6c2;
+}
+.history-diff {
+	max-height: 250px;
+	overflow: auto;
+	white-space: pre-wrap;
+	font-family: monospace;
+	font-size: 0.85rem;
+	line-height: 1.4;
+	border: 1px solid #dee2e6;
+	border-radius: 0.25rem;
+	padding: 0.5rem;
+}
+</style>
+<h5>Historie změn článku</h5>
+<table class="table table-sm table-striped">
+	<thead>
+		<tr>
+			<th>Datum</th>
+			<th>Nadpis</th>
+			<th>Slug</th>
+			<th>Publikováno</th>
+			<th>Obsah (diff)</th>
+		</tr>
+	</thead>
+	<tbody>
+		{foreach $history as $h}
+		<tr>
+			<td>{$h->changed_at|date:'Y-m-d H:i'}</td>
+			<td>{$h->title}</td>
+			<td>{$h->slug}</td>
+			<td>{$h->is_published ? 'Ano' : 'Ne'}</td>
+			<td>
+				<div class="btn btn-sm btn-outline-secondary"
+						data-bs-toggle="collapse"
+						data-bs-target="#history-content-{$h->id}">
+					Zobrazit diff
+				</div>
+			</td>
+		</tr>
+
+		<tr class="small">
+			<td colspan="5">
+				<div n:class="!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'], 'p-2 border rounded small history-diff collapse'" id="history-content-{$h->id}"
+					style="white-space: pre-wrap; font-family: monospace;">
+					{$historyDiffs[$h->id]|noescape}
+				</div>
+			</td>
+		</tr>
+		{/foreach}
+	</tbody>
+</table>
