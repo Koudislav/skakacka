@@ -121,7 +121,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 		if ($this->getUser()->isLoggedIn()) {
 			$menu[] = [
 				'label' => 'Admin',
-				'link' => $this->link('Administration:dashboard:default'),
+				'link' => $this->link('Administration:Dashboard:default'),
 				'isParent' => false,
 				'isActive' => false,
 			];
