@@ -16,20 +16,15 @@ final class CalendarRepository {
 	) {}
 
 	// ============================================================
-	// 🔴 BINARY MODE
+	// BINARY MODE
 	// ============================================================
 	// vrací: ['YYYY-MM-DD' => true]
 	// pouze akce které blokují kapacitu
 	// ============================================================
 
-	public function getBinaryData(
-		DateTimeImmutable $from,
-		DateTimeImmutable $to,
-		?int $resourceId = null,
-	): array {
+	public function getBinaryData(DateTimeImmutable $from, DateTimeImmutable $to, ?int $resourceId = null): array {
 		$rows = $this->db->query(
-			'
-			SELECT
+			'SELECT
 				DATE(eo.starts_at) AS day,
 				COUNT(*) AS cnt
 			FROM event_occurrences eo
@@ -60,20 +55,15 @@ final class CalendarRepository {
 	}
 
 	// ============================================================
-	// 🟡 EVENTS MODE
+	// EVENTS MODE
 	// ============================================================
 	// vrací:
 	// ['YYYY-MM-DD' => [ ['title'=>...], ... ]]
 	// ============================================================
 
-	public function getEventsData(
-		DateTimeImmutable $from,
-		DateTimeImmutable $to,
-		?int $resourceId = null,
-	): array {
+	public function getEventsData(DateTimeImmutable $from, DateTimeImmutable $to, ?int $resourceId = null): array {
 		$rows = $this->db->query(
-			'
-			SELECT
+			'SELECT
 				DATE(eo.starts_at) AS day,
 				e.id,
 				e.title,
@@ -116,15 +106,10 @@ final class CalendarRepository {
 	}
 
 	// ============================================================
-	// 🎯 UNIVERZÁLNÍ METODA (doporučená)
+	// UNIVERZÁLNÍ METODA (doporučená)
 	// ============================================================
 
-	public function getCalendarData(
-		DateTimeImmutable $from,
-		DateTimeImmutable $to,
-		string $mode,
-		?int $resourceId = null,
-	): array {
+	public function getCalendarData(DateTimeImmutable $from, DateTimeImmutable $to, string $mode, ?int $resourceId = null): array {
 		return match ($mode) {
 			'binary' => $this->getBinaryData($from, $to, $resourceId),
 			'events' => $this->getEventsData($from, $to, $resourceId),
@@ -157,8 +142,7 @@ final class CalendarRepository {
 
 		// 🔍 existuje už blokace?
 		$existing = $this->db->fetch(
-			'
-			SELECT e.id
+			'SELECT e.id
 			FROM events e
 			JOIN event_occurrences eo ON eo.event_id = e.id
 			WHERE
@@ -173,7 +157,7 @@ final class CalendarRepository {
 		);
 
 		// =============================
-		// ❌ existuje → smaž
+		// existuje → smaž
 		// =============================
 		if ($existing) {
 			$this->db->table('event_occurrences')
@@ -188,7 +172,7 @@ final class CalendarRepository {
 		}
 
 		// =============================
-		// ✅ neexistuje → vytvoř
+		// neexistuje → vytvoř
 		// =============================
 
 		$eventId = $this->db->table('events')->insert([

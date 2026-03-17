@@ -1,0 +1,11 @@
+<div class="card bg-{$version->type}-subtle mb-2 small">
+	<div class="card-header d-flex align-items-center justify-content-between">
+		<span>{$version->title}</span>
+		<span><small class="text-muted">v.{$version->version} | {$version->created_at|date:'d.m.Y H:i'}</small></span>
+	</div>
+	<div class="card-body py-1">
+		<div class="alert-message">
+			{$version->message|noescape}
+		</div>
+	</div>
+</div>

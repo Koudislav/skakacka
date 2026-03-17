@@ -1,0 +1,7 @@
+{foreach $appVersions as $version}
+	{include '../Components/_versionCard.latte', version => $version}
+	{breakIf $iterator->counter === 3}
+{/foreach}
+{if $appVersions->count() > 3}
+	<a n:href="Versions:default">Zobrazit kompletní historii změn</a>
+{/if}

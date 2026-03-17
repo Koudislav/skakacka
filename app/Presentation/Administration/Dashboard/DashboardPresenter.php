@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Presentation\Administration\Dashboard;
 
 use App\Forms\LoginFormFactory;
+use App\Repository\AppVersionsRepository;
 use App\Service\DiskQuotaService;
 use Nette;
 use Nette\Caching\Cache;
@@ -13,7 +14,10 @@ use Nette\Caching\Storage;
 final class DashboardPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
 
 	/** @var LoginFormFactory @inject */
-	public $loginFormFactory;
+	public LoginFormFactory $loginFormFactory;
+
+	/** @var AppVersionsRepository @inject */
+	public AppVersionsRepository $appVersionsRepository;
 
 	/** @var Storage @inject */
 	public Storage $cacheStorage;
@@ -33,6 +37,7 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 			$this->template->dashboardHeader = 'Přehled';
 			$this->diskQuota();
 			$this->checkConsistency();
+			$this->versions();
 		} else {
 			$this->template->dashboardHeader = 'Přihlášení';
 		}
@@ -45,7 +50,6 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 	public function loginFormSubmitted($form, $values) {
 		try {
 			$this->getUser()->login($values->email, $values->password);
-			$this->flashMessage('Přihlášení bylo úspěšné.', 'success');
 			\Tracy\Debugger::log('User login success - ' . $values->email, 'user');
 		} catch (Nette\Security\AuthenticationException $e) {
 			$form->addError('Nepodařilo se přihlásit: ' . $e->getMessage());
@@ -69,6 +73,10 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 		$this->template->appDiskUsage = $usageFormated;
 		$this->template->appDiskLimit = $limitFormated;
 		$this->template->appDiskPercent = $this->diskQuota->getUsagePercent();
+	}
+
+	public function versions(): void {
+		$this->template->appVersions = $this->appVersionsRepository->findFew(4);
 	}
 
 	public function checkConsistency(): void {
