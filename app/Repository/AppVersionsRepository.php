@@ -25,4 +25,11 @@ class AppVersionsRepository {
 			->limit($limit);
 	}
 
+	public function getOldestForMail() {
+		return $this->db->table(self::VERSIONS_TABLE)
+			->where('email_send', 0)
+			->order('created_at ASC')
+			->fetch();
+	}
+
 }

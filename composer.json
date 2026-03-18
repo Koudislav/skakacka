@@ -24,7 +24,8 @@
 		"google/recaptcha": "^1.3",
 		"nextras/migrations": "^3.5",
 		"contributte/console": "^0.11.0",
-		"caxy/php-htmldiff": "^0.1.17"
+		"caxy/php-htmldiff": "^0.1.17",
+		"contributte/scheduler": "^0.9.0"
 	},
 	"require-dev": {
 		"nette/tester": "^2.5",

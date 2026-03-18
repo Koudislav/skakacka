@@ -29,9 +29,15 @@ di:
 extensions:
 	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
 	migrations: Nextras\Migrations\Bridges\NetteDI\MigrationsExtension
+	scheduler: Contributte\Scheduler\DI\SchedulerExtension
 
 migrations:
 	dir: %appDir%/../migrations
 	driver: mysql
 	dbal: nette
 	withDummyData: false # %debugMode%
+
+scheduler:
+	path: %tempDir%/scheduler
+	jobs:
+		- { cron: '*/30 * * * *', callback: [ @SystemMailerJob, newVersionMail ] }

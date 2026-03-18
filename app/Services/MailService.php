@@ -26,24 +26,43 @@ class MailService {
 			throw new \RuntimeException('No recipients configured for email.');
 		}
 
-		$mail = new Message();
-		$mail->setFrom($this->config['mail_from'], $this->config['mail_from_name'])
-			->setSubject($subject)
-			->setHtmlBody($body);
-
+		$mail = $this->newMessage($subject, $body);
 		foreach ($to as $recipient) {
 			$mail->addTo($recipient);
 		}
 
-		$mailer = new SmtpMailer(
+		$mailer = $this->createMailer();
+
+		$mailer->send($mail);
+	}
+
+	public function sendBulk(string $subject, string $message, array $recipients, ?SmtpMailer $mailer = null): void {
+		if (!$mailer) {
+			$mailer = $this->createMailer();
+		}
+		$mail = $this->newMessage($subject, $message);
+		foreach ($recipients as $recipient) {
+			$mail->addTo($recipient);
+			$mailer->send($mail);
+		}
+	}
+
+	public function newMessage(string $subject, string $body): Message {
+		$mail = new Message();
+		$mail->setFrom($this->config['mail_from'], $this->config['mail_from_name'])
+			->setSubject($subject)
+			->setHtmlBody($body);
+		return $mail;
+	}
+
+	public function createMailer(): SmtpMailer {
+		return new SmtpMailer(
 			$this->config['mail_smtp_host'],
 			$this->config['mail_smtp_user'],
 			$this->config['mail_smtp_pass'],
 			$this->config['mail_smtp_port'],
 			$this->config['mail_smtp_secure'] ?? null,
 		);
-
-		$mailer->send($mail);
 	}
 
 	public function configRecipients(): array {

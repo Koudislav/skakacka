@@ -16,6 +16,7 @@ services:
 
 	- App\Components\ContactFormControlFactory
 	- App\Components\ArticleAsset\ArticleAssetControlFactory
+	SystemMailerJob: App\Scheduler\SystemMailerJob
 
 search:
 	-	in: %appDir%
@@ -24,3 +25,4 @@ search:
 			- *Factory
 			- *Repository
 			- *Service
+			- *Job
