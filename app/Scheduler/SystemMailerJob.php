@@ -43,10 +43,12 @@ final class SystemMailerJob {
 		}
 
 		$subject = "[Nová aktualizace] {$newUpdate->title}";
-		$body = "<h2>Dobrý den,</h2>
-			</h3>rádi bychom Vás informovali o nové aktualizaci naší aplikace!<br>
-			verze {$newUpdate->version} vydaná dne " . $newUpdate->created_at->format('j. n. Y - H:i') . "</h3>";
-		$body .= nl2br($newUpdate->message);
+		$body = $this->getMailOpenerHtml();
+		$body .= "<h2 style='margin-top:0;'>Dobrý den,</h2>
+			<p style='color:#333;font-size:14px;'>rádi bychom Vás informovali o nové aktualizaci naší aplikace.</p>
+			<p style='font-size:14px;'><strong>Verze {$newUpdate->version}</strong><br>
+				vydaná dne " . $newUpdate->created_at->format('j. n. Y - H:i') . "</p>";
+		$body .= $newUpdate->message;
 
 		$mailer = $this->mailService->createMailer();
 		foreach ($users as $user) {
@@ -55,6 +57,7 @@ final class SystemMailerJob {
 				continue;
 			}
 			$message = $body . $this->unsubscribeVersions($user->id, $user->email);
+			$message .= $this->getMailCloserHtml();
 			Debugger::log("Odesílám email o nové aktualizaci verze {$newUpdate->version} uživateli {$user->email}", 'scheduler');
 			$this->mailService->sendBulk($subject, $message, [$user->email], $mailer);
 		}
@@ -64,7 +67,36 @@ final class SystemMailerJob {
 	private function unsubscribeVersions(int $userId, string $email): string {
 		$token = $this->hashSigner->sign((string) $userId);
 		$unsubscribeLink = $this->config['base_url'] . "administration/auth/unsubscribe?type=versions&token={$token}&uid={$userId}";
-		return "<p style='font-size: 0.8em; color: #888;'>Pokud si nepřejete dostávat tyto aktualizace, můžete se <a href='" . htmlspecialchars($unsubscribeLink) . "'>odhlásit zde</a>.</p>";
+		return "<hr style='border:none;border-top:1px solid #cfcfcf;margin:16px 0;'>
+		<p style='font-size: 0.8em; color: #888;'>Pokud si nepřejete dostávat tyto aktualizace, můžete se <a style='color:#888;text-decoration:underline;' href='" . htmlspecialchars($unsubscribeLink) . "'>odhlásit zde</a>.</p>";
 	}
+
+	private function getMailOpenerHtml(): string {
+		return '<!DOCTYPE html>
+			<html lang="cs">
+			<head>
+			<meta charset="UTF-8">
+			<title>Aktualizace aplikace</title>
+			</head>
+			<body style="margin:0;padding:0;background:#f6f7f9;font-family:Arial,sans-serif;">
+
+			<!--[if mso]>
+			<table width="600" cellpadding="0" cellspacing="0" border="0" align="center" bgcolor="#f6f7f9">
+			<tr><td style="padding:14px;">
+			<![endif]-->
+
+			<div style="max-width:800px;margin:0 auto;padding:14px;">';
+	}
+
+	private function getMailCloserHtml(): string {
+		return '</div>
+
+		<!--[if mso]>
+		</td></tr>
+		</table>
+		<![endif]-->
+
+		</body></html>';
+	}	
 
 }

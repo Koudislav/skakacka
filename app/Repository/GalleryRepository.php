@@ -20,7 +20,7 @@ class GalleryRepository {
 
 	public function findAllGalleries($onlyPublished = false) {
 		$query = $this->db->table(self::GALLERIES_TABLE)
-			->order('created_at DESC');
+			->order('position DESC, created_at DESC');
 		if ($onlyPublished) {
 			$query->where('is_published', 1);
 		}
@@ -34,12 +34,14 @@ class GalleryRepository {
 	}
 
 	public function createGallery(stdClass $values, int $userId) {
+		$max = $this->db->table(self::GALLERIES_TABLE)->max('position');
 		return $this->db->table(self::GALLERIES_TABLE)->insert([
 			'title' => $values->title,
 			'description' => $values->description,
 			'is_published' => $values->is_published ? 1 : 0,
 			'created_at' => new \DateTime(),
 			'created_by' => $userId,
+			'position' => $max ? $max + 1 : 0,
 		]);
 	}
 
@@ -87,8 +89,8 @@ class GalleryRepository {
 
 	public function findPicturesByGalleryId(int $galleryId, bool $onlyPublished = false) {
 		$query = $this->db->table(self::PICTURES_TABLE)
-			->where('gallery_id', $galleryId);
-			// ->order('uploaded_at DESC')
+			->where('gallery_id', $galleryId)
+			->order('position ASC, created_at DESC');
 		if ($onlyPublished) {
 			$query->where('is_visible', 1);
 		}
@@ -102,6 +104,10 @@ class GalleryRepository {
 	}
 
 	public function insertPhoto(array $data): int {
+		$max = $this->db->table(self::PICTURES_TABLE)
+			->where('gallery_id', $data['gallery_id'])
+			->max('position');
+		$data['position'] = $max ? $max + 1 : 0;
 		return (int) $this->db->table(self::PICTURES_TABLE)->insert($data)->id;
 	}
 
@@ -140,6 +146,20 @@ class GalleryRepository {
 		$table->where('gallery_id', $image->gallery_id)
 			->update(['is_cover' => 0]);
 		$image->update(['is_cover' => 1]);
+	}
+
+	public function updateGalleryPositions(array $order): void {
+		foreach ($order as $item) {
+			$this->db->table(self::GALLERIES_TABLE)
+				->where('id', $item['id'])
+				->update(['position' => $item['position']]);
+		}
+	}
+
+	public function updateImagePositions(array $order): void {
+		foreach ($order as $item) {
+			$this->updatePhoto((int) $item['id'], ['position' => $item['position']]);
+		}
 	}
 
 }

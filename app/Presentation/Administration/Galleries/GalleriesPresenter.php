@@ -240,4 +240,30 @@ final class GalleriesPresenter extends \App\Presentation\Administration\BaseAdmi
 		$this->sendJson(['status' => 'ok']);
 	}
 
+	public function handleReorderGalleries(): void {
+		if (!$this->isAjax()) {
+			$this->error('Invalid request');
+		}
+		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
+		if (!isset($data['order'])) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+		$this->galleryRepository->updateGalleryPositions($data['order']);
+		$this->sendJson(['status' => 'ok']);
+	}
+
+	public function handleReorderImages(): void {
+		if (!$this->isAjax()) {
+			$this->error('Invalid request');
+		}
+		$data = json_decode($this->getHttpRequest()->getRawBody(), true);
+		if (!isset($data['order'])) {
+			$this->sendJson(['status' => 'error']);
+			return;
+		}
+		$this->galleryRepository->updateImagePositions($data['order']);
+		$this->sendJson(['status' => 'ok']);
+	}
+
 }

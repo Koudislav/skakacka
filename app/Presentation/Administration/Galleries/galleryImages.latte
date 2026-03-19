@@ -16,9 +16,9 @@
 	left: unset !important;
 }
 </style>
-<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 mt-4">
+<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3 mt-4" id="images-sortable" data-reorder-url="{link reorderImages!}">
 	{foreach $images as $image}
-		<div class="col" data-photo-id="{$image->id}">
+		<div class="col sortable-item" data-photo-id="{$image->id}">
 			<div class="card h-100 shadow-sm">
 
 				<div class="ratio ratio-1x1 bg-light position-relative">
@@ -28,7 +28,9 @@
 						alt="{empty($image->description) ? $image->original_name : $image->description}"
 						loading="lazy"
 					>
-
+					<span class="btn btn-sm btn-secondary position-absolute start-0 m-1 cover-button sorter-handle" title="Přesunout">
+						<i class="bi bi-arrows-move"></i>
+					</span>
 					<button
 						n:class="$image->is_cover ? btn-success : btn-outline-warning, 'cover-button btn btn-sm position-absolute end-0 m-1 set-cover'"
 						style="z-index: 2;"
@@ -193,6 +195,37 @@
 			}, 500);
 		});
 	});
+	//reorder
+	document.addEventListener('DOMContentLoaded', () => {
+		const el = document.getElementById('images-sortable');
+		if (!el) return;
 
+		new Sortable(el, {
+			animation: 150,
+			handle: '.sorter-handle',
+			draggable: '.sortable-item',
+			filter: '.no-sort',
+			forceFallback: true,
+			fallbackTolerance: 5,
+			extended_valid_elements: 'span[class]',
+			onEnd: () => {
+				const items = el.querySelectorAll('.sortable-item');
+
+				const order = [...items].map((item, index) => ({
+					id: item.dataset.photoId,
+					position: index
+				}));
+
+				fetch(el.dataset.reorderUrl, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Requested-With': 'XMLHttpRequest'
+					},
+					body: JSON.stringify({ order })
+				});
+			}
+		});
+	});
 </script>
 {/block}

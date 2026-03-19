@@ -1,15 +1,23 @@
 {block blockMenu}
-<div class="list-group rounded shadow-sm">
-	<a 	n:href="default, galleryId: 0" n:class="$currentGalleryId === 0 ? active, 'list-group-item list-group-item-action'">
+<div class="list-group rounded shadow-sm" id="gallery-sortable" data-reorder-url="{link reorderGalleries!}">
+	<a 	n:href="default, galleryId: 0" n:class="$currentGalleryId === 0 ? active, 'list-group-item list-group-item-action no-sort'">
 		<i class="bi bi-plus-circle"></i> Nová galerie
 	</a>
 	{foreach $galleries as $menuItem}
-		<a n:if="$user->isInRole('superadmin') || ($user->isInRole('admin') && $currentGalleryId === $menuItem->id)"
-				n:href="default, galleryId: $menuItem->id"
-				n:class="$currentGalleryId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
-			<i n:class="bi, $menuItem->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
-			{$menuItem->title}
-		</a>
+		<div class="sortable-item" data-id="{$menuItem->id}">
+			<div class="d-flex justify-content-between align-items-start list-group-item list-group-item-action">
+				<a n:if="$user->isInRole('superadmin') || ($user->isInRole('admin') && $currentGalleryId === $menuItem->id)"
+						n:href="default, galleryId: $menuItem->id"
+						n:class="$currentGalleryId === $menuItem->id ? active"
+						data-id="{$menuItem->id}">
+					<i n:class="bi, $menuItem->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
+					{$menuItem->title}
+				</a>
+				<span class="btn btn-sm btn-secondary sorter-handle">
+					<i class="bi bi-arrows-move"></i>
+				</span>
+			</div>
+		</div>
 	{/foreach}
 </div>
 {/block}
@@ -29,3 +37,40 @@
 	</h1>
 	<hr>
 	{control galleryForm}
+{/block}
+{block scripts}
+{include parent}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+	const el = document.getElementById('gallery-sortable');
+	if (!el) return;
+
+	new Sortable(el, {
+		animation: 150,
+		handle: '.sorter-handle',
+		draggable: '.sortable-item',
+		filter: '.no-sort',
+		forceFallback: true,
+		fallbackTolerance: 5,
+		extended_valid_elements: 'span[class]',
+		onEnd: () => {
+			const items = el.querySelectorAll('.sortable-item');
+
+			const order = [...items].map((item, index, arr) => ({
+				id: item.dataset.id,
+				position: arr.length - index - 1
+			}));
+
+			fetch(el.dataset.reorderUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-Requested-With': 'XMLHttpRequest'
+				},
+				body: JSON.stringify({ order })
+			});
+		}
+	});
+});
+</script>
+{/block}

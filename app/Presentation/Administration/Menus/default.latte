@@ -30,7 +30,7 @@
 					</a>
 					<div class="d-flex gap-1">
 						{include '_deleteButton.latte', deleteMenuId => $m['item']->id}
-						<div class="btn btn-sm btn-secondary parent-handle" style="cursor:grab;">
+						<div class="btn btn-sm btn-secondary parent-handle sorter-handle" style="cursor:grab;">
 							<i class="bi bi-arrows-move"></i>
 						</div>
 					</div>
@@ -47,7 +47,7 @@
 								</a>
 								<div class="d-flex gap-1">
 									{include '_deleteButton.latte', deleteMenuId => $child->id}
-									<div class="btn btn-sm btn-secondary child-handle" style="cursor:grab;">
+									<div class="btn btn-sm btn-secondary child-handle sorter-handle" style="cursor:grab;">
 										<i class="bi bi-arrows-move"></i>
 									</div>
 								</div>
