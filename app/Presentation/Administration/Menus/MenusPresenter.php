@@ -6,8 +6,6 @@ namespace App\Presentation\Administration\Menus;
 
 use App\Forms\BootstrapFormFactory;
 use App\Repository\GalleryRepository;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 use Nette\Forms\Form;
 
 final class MenusPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
@@ -15,22 +13,12 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 	/** @var GalleryRepository @inject */
 	public $galleryRepository;
 
-	/** @var Storage @inject */
-	public Storage $cacheStorage;
-
-	public Cache $cache;
-
 	public const MENU_LINK_TYPES = [
 		'article' => 'Odkaz na článek',
 		'index' => 'Hlavní stránka',
 		'gallery' => 'Galerie',
 		'parent' => 'Nadřazená položka (bez odkazu)',
 	];
-
-	public function startup() {
-		parent::startup();
-		$this->cache = new Cache($this->cacheStorage);
-	}
 
 	public function renderDefault(?string $menuKey, ?string $newMenu, ?int $menuId): void {
 		$menuKey = $this->getParameter('menuKey');

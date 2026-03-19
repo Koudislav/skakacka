@@ -11,6 +11,7 @@ class LoginFormFactory {
 	public function create(callable $onSuccess): Form {
 		$form = BootstrapFormFactory::create();
 		$form->addText('email', 'Zadejte email:')
+			->setHtmlAttribute('autofocus', 'autofocus')
 			->setRequired('Zadejte email.')
 			->addRule($form::Email, 'Zadejte platnou e-mailovou adresu.');
 

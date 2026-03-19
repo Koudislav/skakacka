@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Presentation\Administration;
 
+use App\Repository\AppVersionsRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\TemplateRepository;
 use Nette\Utils\FileSystem;
 
 abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresenter {
+
+	/** @var AppVersionsRepository @inject */
+	public AppVersionsRepository $appVersionsRepository;
 
 	/** @var ArticleRepository @inject */
 	public $articleRepository;
@@ -93,6 +97,7 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 		$this->template->menu = $this->processMenu();
 		$this->template->colorScheme = $this->getColorScheme();
 		$this->template->favicons = $this->favicons();
+		$this->getAppVersion();
 	}
 
 	//helpers
@@ -150,6 +155,13 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 			'name' => $template->name,
 			'content' => $template->content,
 		]);
+	}
+
+	public function getAppVersion(): void {
+		$this->template->appVersion = $this->cache->load('app_version', function (&$dependencies) {
+			$dependencies[$this->cache::EXPIRE] = '1 hour';
+			return $this->appVersionsRepository->getCurrentVersion();
+		});
 	}
 
 }

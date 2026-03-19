@@ -22,6 +22,7 @@ class ArticleRepository {
 		'verify-email',
 		'verifyemail',
 		'auth',
+		'unsubscribe',
 	];
 
 	public function __construct(

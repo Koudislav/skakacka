@@ -5,7 +5,7 @@ namespace App\Presentation\Calendar;
 use App\Components\Calendar\CalendarControl;
 use App\Repository\CalendarRepository;
 
-class CalendarPresenter extends \App\Presentation\BasePresenter {
+final class CalendarPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var CalendarRepository @inject */
 	public $calendarRepository;

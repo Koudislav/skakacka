@@ -48,7 +48,7 @@ class UserRepository {
 		return $this->db->table(self::USERS_TABLE);
 	}
 
-	public function getUserById(int $userId): ?ActiveRow {
+	public function getById(int $userId): ?ActiveRow {
 		return $this->db->table(self::USERS_TABLE)
 			->get($userId) ?: null;
 	}
@@ -60,7 +60,7 @@ class UserRepository {
 	}
 
 	public function verifyPasswordById(int $userId, string $password): bool {
-		$user = $this->getUserById($userId);
+		$user = $this->getById($userId);
 
 		if (!$user) {
 			return false;
@@ -70,7 +70,7 @@ class UserRepository {
 	}
 
 	public function setPassword(int $userId, string $password): void {
-		$user = $this->getUserById($userId);
+		$user = $this->getById($userId);
 
 		if ($user) {
 			$user->update(['password_hash' => $this->passwords->hash($password)]);
@@ -78,7 +78,7 @@ class UserRepository {
 	}
 
 	public function updateUser(int $userId, \stdClass $values): void {
-		$user = $this->getUserById($userId);
+		$user = $this->getById($userId);
 		if ($user) {
 			$data = [];
 			if (!empty($values->email) && $user->email !== $values->email) {
@@ -136,6 +136,12 @@ class UserRepository {
 				'email_verification_token' => null,
 				'email_verification_expires_at' => null,
 			]);
+	}
+
+	public function update(int $userId, array $data): void {
+		$this->db->table(self::USERS_TABLE)
+			->where('id', $userId)
+			->update($data);
 	}
 
 }

@@ -7,8 +7,6 @@ namespace App\Presentation\Administration\Configuration;
 use App\Forms\BootstrapFormFactory;
 use App\Repository\ConfigurationRepository;
 use App\Services\BootstrapHelper;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 use Nette\Forms\Form;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Html;
@@ -17,11 +15,6 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 
 	/** @var ConfigurationRepository @inject */
 	public $configurationRepository;
-
-	/** @var Storage @inject */
-	public Storage $cacheStorage;
-
-	public Cache $cache;
 
 	public const CONF_ENUM_TRANSLATIONS = [
 		'template_menu_position' => BootstrapHelper::BOOTSTRAP_POSITION_ENUM,
@@ -37,11 +30,6 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 		'template_bg_content' => 'enumColors',
 		'template_p_content' => 'enumPadding',
 	];
-
-	public function startup() {
-		parent::startup();
-		$this->cache = new Cache($this->cacheStorage);
-	}
 
 	public function actionDefault(?string $category = null): void {
 		$categories = $this->configurationRepository->getCategories();

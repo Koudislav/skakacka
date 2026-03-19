@@ -10,7 +10,7 @@ use App\Repository\GalleryRepository;
 use App\Service\ReCaptchaService;
 use App\Service\SpecialCodesParser;
 
-class ArticlePresenter extends \App\Presentation\BasePresenter {
+final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	/** @var ArticleRepository @inject */
 	public $articleRepository;

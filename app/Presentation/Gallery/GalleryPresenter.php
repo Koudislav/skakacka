@@ -4,7 +4,7 @@ namespace App\Presentation\Gallery;
 
 use App\Repository\GalleryRepository;
 
-class GalleryPresenter extends \App\Presentation\BasePresenter {
+final class GalleryPresenter extends \App\Presentation\BasePresenter {
 
 	/** @var GalleryRepository @inject */
 	public $galleryRepository;

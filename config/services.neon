@@ -17,6 +17,7 @@ services:
 	- App\Components\ContactFormControlFactory
 	- App\Components\ArticleAsset\ArticleAssetControlFactory
 	SystemMailerJob: App\Scheduler\SystemMailerJob
+	- App\Services\Security\HashSigner(%hashSignerSecret%)
 
 search:
 	-	in: %appDir%

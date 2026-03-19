@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Presentation\Administration\Versions;
 
-use App\Repository\AppVersionsRepository;
+use App\Repository\UserRepository;
 use Nette\Utils\Paginator;
 
 final class VersionsPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
 
-	/** @var AppVersionsRepository @inject */
-	public AppVersionsRepository $appVersionsRepository;
+	/** @var UserRepository @inject */
+	public UserRepository $userRepository;
 
 	private const PER_PAGE = 20;
 
@@ -28,6 +28,12 @@ final class VersionsPresenter extends \App\Presentation\Administration\BaseAdmin
 		$this->template->versions = $versions;
 		$this->template->paginator = $paginator;
 		$this->template->dashboardHeader = 'Historie verzí';
+		$this->template->subscribeStatus = (bool) $this->getUser()->getIdentity()->notify_versions;
+	}
+
+	public function handleChangeSubscribeState(bool $state): void {
+		$this->userRepository->update($this->getUser()->getId(), ['notify_versions' => !$state]);
+		$this->getUser()->getIdentity()->notify_versions = (int) !$state;
 	}
 
 }

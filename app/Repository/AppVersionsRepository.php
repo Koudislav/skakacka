@@ -32,4 +32,12 @@ class AppVersionsRepository {
 			->fetch();
 	}
 
+	public function getCurrentVersion(): ?string {
+		$version = $this->db->table(self::VERSIONS_TABLE)
+			->order('created_at DESC')
+			->fetch();
+
+		return $version ? $version->version : null;
+	}
+
 }

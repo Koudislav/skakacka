@@ -83,7 +83,7 @@ final class UsersPresenter extends \App\Presentation\Administration\BaseAdminist
 			->setHtmlAttribute('class', 'btn btn-primary');
 
 		if ($userId !== 0) {
-			$userData = $this->userRepository->getUserById($userId);
+			$userData = $this->userRepository->getById($userId);
 			$form->setDefaults([
 				'email' => $userData->email,
 				'role' => $userData->role,

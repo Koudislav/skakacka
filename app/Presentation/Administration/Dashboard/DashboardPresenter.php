@@ -10,8 +10,6 @@ use App\Repository\UserRepository;
 use App\Service\DiskQuotaService;
 use App\Service\MailService;
 use Nette;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 
 final class DashboardPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
 
@@ -24,21 +22,11 @@ final class DashboardPresenter extends \App\Presentation\Administration\BaseAdmi
 	/** @var UserRepository @inject */
 	public UserRepository $userRepository;
 
-	/** @var Storage @inject */
-	public Storage $cacheStorage;
-
 	/** @var DiskQuotaService @inject */
 	public DiskQuotaService $diskQuota;
 
 	/** @var MailService @inject */
 	public MailService $mailService;
-
-	public Cache $cache;
-
-	public function startup() {
-		parent::startup();
-		$this->cache = new Cache($this->cacheStorage);
-	}
 
 	public function renderDefault() {
 		if ($this->getUser()->isLoggedIn()) {

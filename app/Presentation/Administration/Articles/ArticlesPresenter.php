@@ -5,27 +5,15 @@ declare(strict_types=1);
 namespace App\Presentation\Administration\Articles;
 
 use App\Forms\BootstrapFormFactory;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 use Nette\Forms\Form;
 
 final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
-
-	/** @var Storage @inject */
-	public Storage $cacheStorage;
-
-	public Cache $cache;
 
 	public const ARTICLE_TYPES = [
 		'article' => 'Běžný článek',
 		'news' => 'Novinka',
 		'index' => 'Úvodní stránka',
 	];
-
-	public function startup() {
-		parent::startup();
-		$this->cache = new Cache($this->cacheStorage);
-	}
 
 	public function renderDefault(int $articleId = 0): void {
 		$this->template->currentArticleId = $articleId;

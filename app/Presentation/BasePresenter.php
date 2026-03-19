@@ -36,6 +36,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	public $storage;
 
 	public SeoData $seo;
+	public Cache $cache;
 
 	public string $homeString = 'home';
 
@@ -53,6 +54,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
 	public function startup() {
 		parent::startup();
+		$this->cache = new Cache($this->storage);
 		$cssFile = $this->lessCompiler->getCss('styles.less', true);
 		$this->template->cssFile = $cssFile['final'];
 		$this->template->config = $this->config;
@@ -88,9 +90,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	}
 
 	private function processNavbarMenu(): array {
-		$cache = new Cache($this->storage);
-
-		$menu = $cache->load(self::MENU_CACHE_KEY, function (&$dependencies) {
+		$menu = $this->cache->load(self::MENU_CACHE_KEY, function (&$dependencies) {
 			$dependencies[Cache::Tags] = [self::MENU_CACHE_KEY];
 
 			$menu = [];

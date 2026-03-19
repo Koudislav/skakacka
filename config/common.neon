@@ -3,6 +3,7 @@
 parameters:
 	recaptcha:
 		threshold: 0.5
+	hashSignerSecret: '69bac61aa02483279b133b8fab70e333'
 
 application:
 	errorPresenter:

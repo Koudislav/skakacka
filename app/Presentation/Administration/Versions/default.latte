@@ -1,5 +1,14 @@
 {block content}
-<h1>{$dashboardHeader}</h1>
+<div class="d-flex justify-content-between align-items-center mb-2">
+	<h1>{$dashboardHeader}</h1>
+	<a n:href="changeSubscribeState!, state => $subscribeStatus">
+		{if $subscribeStatus}
+			<span class="btn btn-sm btn-warning">Zrušit odběr e-mailem</span>
+		{else}
+			<span class="btn btn-sm btn-success">Odebírat e-mailem</span>
+		{/if}
+	</a>
+</div>
 
 {foreach $versions as $version}
 {include '../Components/_versionCard.latte', version => $version}
