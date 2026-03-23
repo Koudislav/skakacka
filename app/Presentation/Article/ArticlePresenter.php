@@ -42,6 +42,7 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 		$this->template->articleContent = $articleContent;
 		$this->template->article = $article;
 		$this->overwriteSeo($article);
+		$this->template->breadcrumbs = $this->buildTemplateBreadcrumbs($article->path, $article->id);
 	}
 
 	public function actionPreview(): void {
@@ -124,9 +125,9 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			$this->seo->ogDescription = $article->seo_description;
 		}
 
-		$this->seo->breadcrumbs = $this->buildSeoBreadcrumbs($article->path, $article->id);
-
-		$this->template->breadcrumbs = $this->buildTemplateBreadcrumbs($article->path, $article->id);
+		if ($this->getAction() !== 'preview') {
+			$this->seo->breadcrumbs = $this->buildSeoBreadcrumbs($article->path, $article->id);
+		}
 	}
 
 	private function buildTemplateBreadcrumbs(string $path, int $articleId): array {
