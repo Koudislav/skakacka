@@ -1,0 +1,11 @@
+<nav style="--bs-breadcrumb-divider: '{$config['ui_breadcrumbs_separator']|noescape}';" aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		{foreach $breadcrumbs as $text => $link}
+			{if $iterator->last && $config['ui_breadcrumbs_show_current']}
+				<li class="breadcrumb-item active" aria-current="page">{$text}</li>
+				{breakIf true}
+			{/if}
+			<li class="breadcrumb-item"><a href="{$link}">{$text}</a></li>
+		{/foreach}
+	</ol>
+</nav>

@@ -1,9 +1,14 @@
 {block title}{$seo->getTitle()}{/block}
 {block content}
 <div n:class="$config['template_container_fluid'] ? container-fluid : container,
-		!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
-		!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
-		content-container">
+	!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
+	!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
+	content-container">
+
+	{if $config['ui_breadcrumbs_articles'] && !empty($breadcrumbs)}
+		{include '../Components/_breadcrumbs.latte', breadcrumbs => $breadcrumbs}
+	{/if}
+
 	{if $article->show_title}
 		<h1>{$article->title}</h1>
 	{/if}

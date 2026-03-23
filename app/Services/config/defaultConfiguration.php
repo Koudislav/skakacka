@@ -22,6 +22,7 @@ final class DefaultConfiguration {
 			'sort_order' => 100,
 			'default' => '',
 		],
+
 		'aplication_size' => [
 			'category' => 'basic',
 			'type' => 'string',
@@ -135,7 +136,7 @@ final class DefaultConfiguration {
 			'type' => 'enum',
 			'description' => 'Barva pozadí celé stránky',
 			'sort_order' => 211,
-			'default' => 'light',
+			'default' => null,
 			'enum_options' => ['bgColor'],
 		],
 
@@ -144,7 +145,7 @@ final class DefaultConfiguration {
 			'type' => 'enum',
 			'description' => 'Barva pozadí navbaru',
 			'sort_order' => 212,
-			'default' => 'light',
+			'default' => null,
 			'enum_options' => ['bgColor'],
 		],
 
@@ -153,7 +154,7 @@ final class DefaultConfiguration {
 			'type' => 'enum',
 			'description' => 'Barva pozadí obsahové části stránky',
 			'sort_order' => 213,
-			'default' => 'light',
+			'default' => null,
 			'enum_options' => ['bgColor'],
 		],
 
@@ -327,6 +328,79 @@ final class DefaultConfiguration {
 			'description' => 'Konstantní část title za dynamickou (nemusí být vyplněno)',
 			'sort_order' => 100,
 			'default' => '| CMS by Jiří Kodys',
+		],
+
+		'ui' => [
+			'category' => 'ui',
+			'type' => 'label',
+			'description' => 'Nastavení uživatelského rozhraní a viditelnosti jednotlivých prvků.',
+			'sort_order' => 0,
+			'default' => 'Uživatelské rozhraní',
+		],
+
+		'ui_label_breadcrumbs' => [
+			'category' => 'ui',
+			'type' => 'label',
+			'description' => 'Breadcrumbs (drobečková navigace)',
+			'sort_order' => 100,
+			'default' => '',
+		],
+
+		'ui_breadcrumbs_articles' => [
+			'category' => 'ui',
+			'type' => 'bool',
+			'description' => 'Zobrazovat breadcrumbs v zobrazení článků',
+			'sort_order' => 120,
+			'default' => false,
+		],
+
+		'ui_breadcrumbs_galleries' => [
+			'category' => 'ui',
+			'type' => 'bool',
+			'description' => 'Zobrazovat breadcrumbs v galeriích',
+			'sort_order' => 130,
+			'default' => false,
+		],
+
+		'ui_breadcrumbs_home' => [
+			'category' => 'ui',
+			'type' => 'bool',
+			'description' => 'Zobrazovat v breadcrumbs odkaz na domovskou stránku',
+			'sort_order' => 150,
+			'default' => true,
+		],
+
+		'ui_breadcrumbs_home_text' => [
+			'category' => 'ui',
+			'type' => 'string',
+			'description' => 'Text odkazu na domovskou stránku v breadcrumbs',
+			'sort_order' => 155,
+			'default' => 'Domů',
+		],
+
+		'ui_breadcrumbs_separator' => [
+			'category' => 'ui',
+			'type' => 'string',
+			'description' => 'Znak oddělující položky v breadcrumbs',
+			'sort_order' => 160,
+			'default' => '/',
+		],
+
+		'ui_breadcrumbs_show_min_items' => [
+			'category' => 'ui',
+			'type' => 'enum',
+			'description' => 'Minimální počet viditelných položek potřebný pro zobrazení breadcrumbs',
+			'sort_order' => 165,
+			'default' => 2,
+			'enum_options' => null,
+		],
+
+		'ui_breadcrumbs_show_current' => [
+			'category' => 'ui',
+			'type' => 'bool',
+			'description' => 'Zobrazovat v breadcrumbs aktuální stránku jako poslední položku',
+			'sort_order' => 170,
+			'default' => true,
 		],
 	];
 

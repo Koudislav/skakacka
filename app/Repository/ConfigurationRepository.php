@@ -28,7 +28,7 @@ class ConfigurationRepository {
 			->where('type', 'label')
 			->where('active', 1)
 			->where('sort_order', 0)
-			->order('description ASC')
+			->order('value_string ASC')
 			->fetchPairs('category', 'value_string');
 	}
 

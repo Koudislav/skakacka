@@ -13,7 +13,7 @@ class ArticleRepository {
 
 	public const ARTICLES_TABLE = 'articles';
 	public const ARTICLES_HISTORY_TABLE = 'articles_history';
-	public const ALL_ARTICLE_SLUGS_CACHE_KEY = 'all_article_slugs';
+	public const ALL_ARTICLE_PATHS_CACHE_KEY = 'all_article_paths';
 
 	public const FORBIDEN_SLUGS = [
 		'administration',
@@ -47,16 +47,32 @@ class ArticleRepository {
 		if ($article) {
 			$data = [];
 			$update = false;
+			$parentId = $values->parent_id ?? null;
+			if ($parentId === $articleId) {
+				throw new \Exception('Článek nemůže být sám sobě rodičem.');
+			}
+			if ($parentId !== null) {
+				$this->assertNoCycle($articleId, $parentId);
+			}
 
-			$toUpdate = ['title', 'slug', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description', 'og_image'];
+			$toUpdate = ['title', 'slug', 'parent_id', 'content', 'type', 'show_title', 'is_published', 'seo_title', 'seo_description', 'og_image'];
 			if ($article->is_system) {
 				$toUpdate = ['content'];
+			} else {
+				$parentChanged = $article->parent_id != $parentId;
+				$slugChanged = $article->slug !== $values->slug;
+
+				if ($parentChanged || $slugChanged) {
+					$oldPath = $article->path;
+					$newPath = $this->buildPath($values->slug, $parentId);
+					$data['path'] = $newPath;
+				}
 			}
 
 			foreach ($toUpdate as $key) {
 				$data[$key] = is_bool($values->$key) ? ($values->$key ? 1 : 0) : $values->$key;
 
-				if (!$update && (!is_bool($values->$key) && $article->$key != $values->$key) || (is_bool($values->$key) && (bool)$article->$key !== $values->$key)) {
+				if (!$update && ((!is_bool($values->$key) && $article->$key != $values->$key) || (is_bool($values->$key) && (bool)$article->$key !== $values->$key))) {
 					$update = true;
 				}
 			}
@@ -67,7 +83,11 @@ class ArticleRepository {
 			$data['updated_at'] = new \DateTime();
 			$data['updated_by'] = $userId;
 
-			return $article->update($data);
+			$article->update($data);
+			if ($parentChanged || $slugChanged) {
+				$this->updateChildrenPaths($article->id, $oldPath, $newPath);
+			}
+			return true;
 		}
 		return false;
 	}
@@ -76,15 +96,23 @@ class ArticleRepository {
 		$return = ['success' => true, 'messages' => [['success' => 'Článek byl úspěšně vytvořen.']]];
 		$slug = $this->generateAvailableSlug(
 			!empty($values->slug)
-			? $values->slug
-			: Strings::webalize($values->title)
+				? $values->slug
+				: Strings::webalize($values->title),
+			null,
+			$values->parent_id ?? null
 		);
 		if ($slug !== strtolower($values->slug)) {
 			$return['messages'][] = ['info' => 'Poznámka: Zadaný slug již existoval, byl změněn na unikátní hodnotu.'];
 		}
+
+		$parentId = $values->parent_id ?? null;
+		$path = $this->buildPath($slug, $parentId);
+
 		$data = [
 			'title' => $values->title,
 			'slug' => $slug,
+			'parent_id' => $parentId,
+			'path' => $path,
 			'content' => $values->content,
 			'type' => $values->type,
 			'show_title' => $values->show_title ? 1 : 0,
@@ -101,59 +129,60 @@ class ArticleRepository {
 		return $return;
 	}
 
-	public function generateAvailableSlug(string $slug, ?int $excludeArticleId = null): string {
+	public function generateAvailableSlug(string $slug, ?int $excludeArticleId = null, ?int $parentId = null): string {
 		$baseSlug = $slug;
 		$i = 0;
-
-		$query = $this->db->table(self::ARTICLES_TABLE);
 
 		// kontrolujeme, jestli slug je volny, pripadne pridame postfix
 		while (true) {
 			$checkSlug = $i === 0 ? $baseSlug : $baseSlug . '-' . $i;
 
-			$slugQuery = $query->where('slug', $checkSlug);
+			$query = $this->db->table(self::ARTICLES_TABLE)
+				->where('slug', $checkSlug)
+				->where('parent_id', $parentId);
+
 			if ($excludeArticleId !== null) {
-				$slugQuery->where('id != ?', $excludeArticleId);
+				$query->where('id != ?', $excludeArticleId);
 			}
 
-			if ($slugQuery->count('*') === 0 && $checkSlug !== '' && !in_array($checkSlug, self::FORBIDEN_SLUGS, true)) {
+			if ($query->count('*') === 0 && $checkSlug !== '' && !in_array($checkSlug, self::FORBIDEN_SLUGS, true)) {
 				return $checkSlug;
 			}
 			$i++;
 		}
 	}
 
-	public function getBySlug(string $slug): ?ActiveRow {
-		return $this->db->table(self::ARTICLES_TABLE)
-			->where('deleted_at', null)
-			->where('slug', $slug)
-			->fetch() ?: null;
-	}
+	// public function getBySlug(string $slug): ?ActiveRow {
+	// 	return $this->db->table(self::ARTICLES_TABLE)
+	// 		->where('deleted_at', null)
+	// 		->where('slug', $slug)
+	// 		->fetch() ?: null;
+	// }
 
-	public function getAllSlugs(bool $onlyPublished = true): array {
+	public function getAllPaths(bool $onlyPublished = true): array {
 		$slugs = [];
 		$query = $this->db->table(self::ARTICLES_TABLE);
 		if ($onlyPublished) {
 			$query->where('is_published', 1);
 		}
-		$rows = $query->select('slug')->fetchAll();
+		$rows = $query->select('path')->fetchAll();
 		foreach ($rows as $row) {
-			$slugs[] = $row->slug;
+			$slugs[] = $row->path;
 		}
 		return $slugs;
 	}
 
-	public function getArticleListForSelect(): array {
-		$articles = $this->db->table(self::ARTICLES_TABLE)
-			->where('deleted_at', null)
-			->order('title ASC')
-			->fetchAll();
-		$result = [];
-		foreach ($articles as $article) {
-			$result[$article->slug] = ($article->is_published != 1 ? 'NEPUBLIKOVANO! ' : '') . $article->title . ' /// ' . $article->slug;
-		}
-		return $result;
-	}
+	// public function getArticleListForSelect(): array {
+	// 	$articles = $this->db->table(self::ARTICLES_TABLE)
+	// 		->where('deleted_at', null)
+	// 		->order('title ASC')
+	// 		->fetchAll();
+	// 	$result = [];
+	// 	foreach ($articles as $article) {
+	// 		$result[$article->slug] = ($article->is_published != 1 ? 'NEPUBLIKOVANO! ' : '') . $article->title . ' /// ' . $article->slug;
+	// 	}
+	// 	return $result;
+	// }
 
 	public function getIndexes(bool $onlyPublished = true) {
 		$query = $this->db->table(self::ARTICLES_TABLE)
@@ -202,6 +231,106 @@ class ArticleRepository {
 		$html = preg_replace('/\s+/', ' ', $html);
 		$html = preg_replace('/\sdata-mce-[^=]+="[^"]*"/', '', $html);
 		return $html;
+	}
+
+	private function buildPath(string $slug, ?int $parentId): string {
+		if ($parentId === null) {
+			return $slug;
+		}
+		$parent = $this->getArticleById($parentId);
+		if (!$parent) {
+			throw new \RuntimeException('Parent not found.');
+		}
+		return $parent->path . '/' . $slug;
+	}
+
+	private function updateChildrenPaths(int $parentId, string $oldPath, string $newPath): void {
+		$children = $this->db->table(self::ARTICLES_TABLE)
+			->where('path LIKE ?', $oldPath . '/%')
+			->fetchAll();
+
+		foreach ($children as $child) {
+			$newChildPath = preg_replace(
+				'#^' . preg_quote($oldPath, '#') . '#',
+				$newPath,
+				$child->path
+			);
+
+			$this->db->table(self::ARTICLES_TABLE)
+				->where('id', $child->id)
+				->update([
+					'path' => $newChildPath,
+				]);
+		}
+	}
+
+	public function getArticleOptions(?int $excludeId = null, array $params = ['returnKey' => 'id']): array {
+		$rows = $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
+			->order('path ASC')
+			->fetchAll();
+
+		$options = [];
+		foreach ($rows as $row) {
+			if ($excludeId !== null && $row->id === $excludeId) {
+				continue;
+			}
+			// depth podle path
+			$depth = substr_count($row->path, '/');
+			// odsazení
+			$prefix = str_repeat('— ', $depth);
+			$options[$row->{$params['returnKey']}] = $prefix . $row->title . ' (' . $row->slug . ')';
+		}
+		return $options;
+	}
+
+	private function assertNoCycle(int $articleId, int $parentId): void {
+		while ($parentId !== null) {
+			if ($parentId === $articleId) {
+				throw new \Exception('Nelze vytvořit cyklus ve stromu.');
+			}
+
+			$parent = $this->getArticleById($parentId);
+			if (!$parent) break;
+
+			$parentId = $parent->parent_id;
+		}
+	}
+
+	public function getArticleTree(?int $parentId = null): array {
+		$rows = $this->db->table(self::ARTICLES_TABLE)
+			->where('deleted_at', null)
+			->order('path ASC') // nebo 'position ASC', pokud máš pořadí
+			->fetchAll();
+
+		$tree = [];
+
+		// sestavíme pole podle parent_id
+		$byParent = [];
+		foreach ($rows as $row) {
+			$pid = $row->parent_id ?? 0;
+			$byParent[$pid][] = $row;
+		}
+
+		$buildTree = function ($parentId) use (&$buildTree, $byParent) {
+			$branch = [];
+			foreach ($byParent[$parentId] ?? [] as $row) {
+				$branch[] = [
+					'article' => $row,
+					'children' => $buildTree($row->id),
+				];
+			}
+			return $branch;
+		};
+
+		return $buildTree($parentId ?? 0);
+	}
+
+	public function getByPath(string $path): ?ActiveRow {
+		return $this->db->table(self::ARTICLES_TABLE)
+			->where('path', $path)
+			->where('is_published', 1)
+			->fetch() ?: null;
 	}
 
 }

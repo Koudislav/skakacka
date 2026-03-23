@@ -89,10 +89,11 @@ class MenuRepository {
 			'is_active' => $values->is_active ? 1 : 0,
 			'presenter' => $this->resolvePresenter($values),
 			'action' => $this->resolveAction($values),
-			'params' => $this->resolveParams($values),
 			'position' => $this->getNextPosition($values->menu_key),
 			'parent_id' => $values->parent_id ?: null,
 		];
+		$insert += $this->resolveParams($values);
+
 		return $this->db->table(self::MENUS_TABLE)->insert($insert)->id;
 	}
 
@@ -102,9 +103,9 @@ class MenuRepository {
 			'is_active' => $values->is_active ? 1 : 0,
 			'presenter' => $this->resolvePresenter($values),
 			'action' => $this->resolveAction($values),
-			'params' => $this->resolveParams($values),
 			'parent_id' => $values->parent_id ?: null,
 		];
+		$update += $this->resolveParams($values);
 		$this->db->table(self::MENUS_TABLE)->where('id', $id)->update($update);
 	}
 
@@ -127,15 +128,15 @@ class MenuRepository {
 		};
 	}
 
-	public function resolveParams(\stdClass $values): ?string {
+	public function resolveParams(\stdClass $values): array {
 		switch ($values->linkType) {
 			case 'article':
-				return json_encode(['slug' => $values->linkedArticleSlug]);
+				return ['path' => $values->linkedArticleSlug];
 			case 'gallery':
 				if (is_numeric($values->galleryId)) {
-					return json_encode(['id' => (int) $values->galleryId]);
+					return ['target_id' => (int) $values->galleryId];
 				}
-			default: return null;
+			default: return [];
 		}
 	}
 
@@ -148,8 +149,14 @@ class MenuRepository {
 		if ($row->presenter === 'Article' && $row->action === 'default') {
 			return [
 				'linkType' => 'article',
-				'linkedArticleSlug' => json_decode((string) $row->params, true)['slug'] ?? null,
+				'linkedArticleSlug' => $row->path ?? null,
 			];
+		}
+		if ($row->presenter === 'Gallery') {
+			return [
+				'linkType' => 'gallery',
+				'galleryId' => $row->target_id ?? null,
+			] + $basic;
 		}
 		return ['linkType' => 'index'] + $basic;
 	}

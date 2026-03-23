@@ -3,6 +3,7 @@
 namespace App\Presentation\Gallery;
 
 use App\Repository\GalleryRepository;
+use Nette\Database\Table\ActiveRow;
 
 final class GalleryPresenter extends \App\Presentation\BasePresenter {
 
@@ -26,7 +27,8 @@ final class GalleryPresenter extends \App\Presentation\BasePresenter {
 		$this->seo->schemaType = 'CollectionPage';
 		$this->seo->title = 'Galerie';
 		$this->seo->description = 'Přehled všech galerií s fotografiemi na našem webu.';
-		$this->seo->breadcrumbs = $this->breadcrumbs();
+		$this->seo->breadcrumbs = $this->buildBreadcrumbs();
+		$this->template->breadcrumbs = $this->buildTemplateBreadctumbs();
 	}
 
 	/**
@@ -58,16 +60,37 @@ final class GalleryPresenter extends \App\Presentation\BasePresenter {
 			$this->seo->ogImage = $this->config['base_url'] . $ogPicture->path_big;
 		}
 		$this->seo->schemaType = 'ImageGallery';
-		$this->seo->breadcrumbs = $this->breadcrumbs();
-		$this->seo->breadcrumbs[$gallery->title] = $this->link('//Gallery:view', ['id' => $id]);
+		$this->seo->breadcrumbs = $this->buildBreadcrumbs($gallery);
+		$this->template->breadcrumbs = $this->buildTemplateBreadctumbs($gallery);
 	}
 
-	private function breadcrumbs(): array {
-		return [
-			$this->homeString => $this->link('//Home:default'),
+	private function buildTemplateBreadctumbs(?ActiveRow $gallery = null): array {
+		if (!$this->config['ui_breadcrumbs_galleries'])
+			return [];
+
+		$breadcrumbs = $this->buildBreadcrumbs($gallery);
+
+		if (!$this->config['ui_breadcrumbs_home'])
+			array_shift($breadcrumbs);
+
+		if (!$this->config['ui_breadcrumbs_show_current'])
+			array_pop($breadcrumbs);
+
+		if (count($breadcrumbs) < (int) $this->config['ui_breadcrumbs_show_min_items'])
+			return [];
+
+		return $breadcrumbs;
+	}
+
+	private function buildBreadcrumbs(?ActiveRow $gallery = null): array {
+		$breadcrumbs = [
+			$this->config['ui_breadcrumbs_home_text'] ?: 'Home' => $this->link('//Home:default'),
 			'Galerie' => $this->link('//Gallery:default'),
 		];
+		if ($gallery) {
+			$breadcrumbs[$gallery->title] = $this->link('//Gallery:view', ['id' => $gallery->id]);
+		}
+		return $breadcrumbs;
 	}
-
 
 }

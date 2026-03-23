@@ -38,8 +38,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	public SeoData $seo;
 	public Cache $cache;
 
-	public string $homeString = 'home';
-
 	protected const WWW_PATH = '/../../www';
 
 	public const MENU_CACHE_KEY = 'navbar_menu';
@@ -114,7 +112,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 					$menu[] = $this->processNavbarMenuItem($item);
 				}
 			}
-
 			return $menu;
 		});
 
@@ -131,9 +128,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 	}
 
 	public function processNavbarMenuItem(array $item): array {
-		$itemParams = $item['item']->params
-			? json_decode($item['item']->params, true)
-			: [];
+		$itemParams = $this->buildMenuParams($item['item']);
 
 		return [
 			'label' => $item['item']->label,
@@ -164,14 +159,27 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 			}
 
 			if (!empty($item['link']) && !empty($item['item'])) {
+				$params = $this->buildMenuParams($item['item']);
 				$item['isActive'] = (
-					$this->isLinkCurrent($item['item']['presenter'] . ':' . $item['item']['action'], $item['item']['params'] ? json_decode($item['item']['params'], true) : [])
+					$this->isLinkCurrent($item['item']['presenter'] . ':' . $item['item']['action'], $params)
 					|| ($item['item']['presenter'] === 'Gallery' && $this->getName() === 'Gallery')
 				);
 			}
 		}
 
 		return $items;
+	}
+
+	public function buildMenuParams($item): array {
+		$params = [];
+		$itemArray = is_array($item) ? $item : $item->toArray();
+		if (!empty($itemArray['path'])) {
+			$params['path'] = $itemArray['path'];
+		}
+		if (!empty($itemArray['target_id'])) {
+			$params['id'] = $itemArray['target_id'];
+		}
+		return $params;
 	}
 
 	public function seoData(): void {

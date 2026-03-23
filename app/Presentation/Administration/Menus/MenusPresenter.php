@@ -58,7 +58,7 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 		$linkType->addCondition($form::Equal, 'gallery')
 			->toggle('#galleryId-pair-container');
 
-		$linkedArticleSlug = $form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleListForSelect())
+		$linkedArticleSlug = $form->addSelect('linkedArticleSlug', 'Propojit s článkem:', $this->articleRepository->getArticleOptions(null, ['returnKey' => 'path']))
 			->setPrompt('Žádný článek');
 
 		$linkedArticleSlug->setOption('container-id', 'linkedArticleSlug-pair-container');
@@ -83,6 +83,7 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 				'linkType' => $menuItem['processed']['linkType'],
 				'linkedArticleSlug' => $menuItem['processed']['linkedArticleSlug'],
 				'parent_id' => $menuItem['db']->parent_id,
+				'galleryId' => $menuItem['processed']['galleryId'] ?? null,
 			]);
 		}
 

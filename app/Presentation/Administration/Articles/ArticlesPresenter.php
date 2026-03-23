@@ -37,7 +37,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 		}
 
 		$this->template->articleName = $data[$articleId]->title ?? null;
-		$this->template->menus = $indexes + $articles;
+		$this->template->menus = $this->articleRepository->getArticleTree();
 
 		$this->collapses($articleId);
 		$this->history($articleId);
@@ -49,6 +49,9 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 
 		$form->addSelect('type', 'Typ článku:', self::ARTICLE_TYPES)
 			->setDefaultValue('article');
+
+		$form->addSelect('parent_id', 'Rodič:', $this->articleRepository->getArticleOptions($articleId))
+			->setPrompt('— žádný (Domů) —');
 
 		$form->addText('title', 'Nadpis:')
 			->setRequired('Zadejte nadpis článku.');
@@ -85,7 +88,10 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 
 		if ($articleId !== 0) {
 			$articleData = $this->articleRepository->getArticleById($articleId);
-			if ($articleData->is_system) {
+			if (!$articleData) {
+				$this->flashMessage('Článek nenalezen.', 'danger');
+				$this->redirect('default');
+			} elseif ($articleData->is_system) {
 				$this->disableFieldsForSystem($form);
 			}
 
@@ -99,6 +105,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 				'seo_title' => $articleData->seo_title,
 				'seo_description' => $articleData->seo_description,
 				'og_image' => $articleData->og_image,
+				'parent_id' => $articleData->parent_id,
 			]);
 		}
 
@@ -125,7 +132,7 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			} else {
 				$this->flashMessage('Článek byl úspěšně upraven.', 'success');
 			}
-			$this->cache->remove($this->articleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->cache->remove($this->articleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
 			$this->cache->clean([$this->cache::Tags => ['articleAssets']]);
 			$this->redirect('this');
 		} else {
@@ -136,7 +143,8 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 					$this->flashMessage($msg, $type);
 				}
 			}
-			$this->cache->remove($this->articleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+			$this->cache->remove($this->articleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
+			$this->cache->clean([$this->cache::Tags => ['articleAssets', 'articleBreadcrumbs']]);
 			$this->redirect('this', ['articleId' => $create['articleId']]);
 		}
 	}

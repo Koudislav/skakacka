@@ -1,11 +1,15 @@
 {block loader}<span class="active" id="page-loader"></span>{/block}
 
 {block content}
-{dump}
 <div n:class="$config['template_container_fluid'] ? container-fluid : container,
-		!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
-		!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
-		content-container">
+	!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
+	!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
+	content-container">
+
+	{if $config['ui_breadcrumbs_galleries'] && !empty($breadcrumbs)}
+		{include '../Components/_breadcrumbs.latte', breadcrumbs => $breadcrumbs}
+	{/if}
+
 	<h1 n:block=title>{$gallery->title}</h1>
 	<div>{$gallery->description|noescape}</div>
 
@@ -14,10 +18,9 @@
 		{foreach $pictures as $picture}
 			<div class="justified-item">
 				<a href="{$basePath}/{$picture->path_big}" class="glightbox" data-gallery="gallery-{$gallery->id}" data-description="{$picture->description}">
-					<img 
-						src="{$basePath}/{$picture->path_small}" 
+					<img src="{$basePath}/{$picture->path_small}"
 						data-medium="{$basePath}/{$picture->path_medium}"
-						alt="{$picture->description}" 
+						alt="{$picture->description}"
 						style="height:255px; width:auto; display:block; border-radius:5px;"
 						onerror="this.src='{$basePath|noescape}/assets/images/picture-not-found.webp'">
 				</a>

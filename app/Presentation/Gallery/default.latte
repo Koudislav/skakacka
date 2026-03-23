@@ -1,8 +1,13 @@
 {block content}
 <div n:class="$config['template_container_fluid'] ? container-fluid : container,
-		!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
-		!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
-		content-container">
+	!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
+	!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
+	content-container">
+
+	{if $config['ui_breadcrumbs_galleries'] && !empty($breadcrumbs)}
+		{include '../Components/_breadcrumbs.latte', breadcrumbs => $breadcrumbs}
+	{/if}
+
 	<h1 n:block=title>Galerie</h1>
 	<div class="row gx-3 gy-3">
 		{foreach $galleries as $gallery}
@@ -10,16 +15,15 @@
 			<div class="col-6 col-md-4 col-lg-3">
 				<a class="text-decoration-none" href="{link Gallery:view, $gallery->id}">
 					<div class="card h-100 card-hover">
-						<img 
-							src="{$basePath}/{$covers[$gallery->id]->path_small}" 
-							class="card-img-top" 
+						<img src="{$basePath}/{$covers[$gallery->id]->path_small}"
+							class="card-img-top"
 							alt="{$gallery->title}"
 							style="height:200px; object-fit:cover; width:100%;"
 							onerror="this.src='{$basePath|noescape}/assets/images/picture-not-found.webp'">
 
 						<div class="card-body">
 							<h5 class="card-title text-truncate" title="{$gallery->title}">{$gallery->title}</h5>
-						
+
 							{if $gallery->description}
 								<p class="card-text text-truncate" title="{$gallery->description|stripHtml|truncate(100)}">
 									{$gallery->description|stripHtml|truncate(100)}
@@ -27,6 +31,7 @@
 							{else}
 								<p class="card-text">&nbsp;</p>
 							{/if}
+
 						</div>
 					</div>
 				</a>

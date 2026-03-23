@@ -1,21 +1,12 @@
 {block blockMenu}
 <div class="list-group rounded shadow-sm">
 	<a n:href="default, articleId: 0"
-			n:class="$currentArticleId === 0 ? active, 'list-group-item list-group-item-action'">
+		n:class="$currentArticleId === 0 ? active, 'list-group-item list-group-item-action'">
 		<i class="bi bi-file-earmark-plus"></i> Nový článek
 	</a>
 
-	{foreach $menus as $menuItem}
-		<a n:href="default, articleId: $menuItem->id"
-				n:class="$currentArticleId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
+	{include '_articleMenu.latte', items => $menus, level => 0}
 
-			<i n:class="bi, $menuItem->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
-			<span title="{$menuItem->slug}">
-				{if $menuItem->type === 'index'}<strong>Úvodní stránka</strong> {/if}
-				{$menuItem->title}
-			</span>
-		</a>
-	{/foreach}
 </div>
 {/block}
 

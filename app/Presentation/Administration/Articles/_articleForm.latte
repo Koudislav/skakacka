@@ -1,4 +1,3 @@
-{dump $history ?? null}
 {form articleForm}
 <div class="accordion" id="articleAccordion">
 	{if $systemArticle}
@@ -20,6 +19,9 @@
 				<div class="card-body">
 					{label type /}
 					{input type}
+
+					{label parent_id /}
+					{input parent_id}
 
 					{label title /}
 					{input title}

@@ -94,33 +94,33 @@ class SitemapGenerator {
 	}
 
 	public function getArticleUrls(): array {
-		$slugs = $this->cache->load(\App\Repository\ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
-		if (empty($slugs)) {
+		$paths = $this->cache->load(\App\Repository\ArticleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
+		if (empty($paths)) {
 			return [];
 		}
 		$updated = $this->db->table(\App\Repository\ArticleRepository::ARTICLES_TABLE)
-			->select('slug, updated_at, created_at')
-			->where('slug IN ?', $slugs)
+			->select('path, updated_at, created_at')
+			->where('path IN ?', $paths)
 			->where('type', 'article')
 			->fetchAll();
 
 		$articles = [];
 		foreach ($updated as $article) {
-			$articles[$article->slug] = $article->updated_at ?? $article->created_at;
+			$articles[$article->path] = $article->updated_at ?? $article->created_at;
 		}
 
 		$urls = [];
-		foreach ($slugs as $slug) {
-			if (!array_key_exists($slug, $articles)) {
+		foreach ($paths as $path) {
+			if (!array_key_exists($path, $articles)) {
 				continue;
 			}
 			$item = [
-				'loc' => $this->baseUrl . $slug,
+				'loc' => $this->baseUrl . $path,
 				'changefreq' => 'weekly',
 				'priority' => '0.7',
 			];
-			if ($articles[$slug]) {
-				$item['lastmod'] = $articles[$slug]->format('c');
+			if ($articles[$path]) {
+				$item['lastmod'] = $articles[$path]->format('c');
 			}
 			$urls[] = $item;
 		}

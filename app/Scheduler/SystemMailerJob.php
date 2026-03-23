@@ -45,10 +45,11 @@ final class SystemMailerJob {
 		$subject = "[Nová aktualizace] {$newUpdate->title}";
 		$body = $this->getMailOpenerHtml();
 		$body .= "<h2 style='margin-top:0;'>Dobrý den,</h2>
-			<p style='color:#333;font-size:14px;'>rádi bychom Vás informovali o nové aktualizaci naší aplikace.</p>
+			<p style='color:#333;font-size:14px;margin-bottom:10px;'>rádi bychom Vás informovali o nové aktualizaci naší aplikace.</p>
 			<p style='font-size:14px;'><strong>Verze {$newUpdate->version}</strong><br>
 				vydaná dne " . $newUpdate->created_at->format('j. n. Y - H:i') . "</p>";
-		$body .= $newUpdate->message;
+
+		$body .= $newUpdate->message_mail ?: $newUpdate->message;
 
 		$mailer = $this->mailService->createMailer();
 		foreach ($users as $user) {

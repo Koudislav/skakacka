@@ -23,13 +23,13 @@ final class RouterFactory {
 
 		$storage = new FileStorage(__DIR__ . '/../../temp/cache');
 		$cache = new Cache($storage);
-		$slugs = $cache->load(\App\Repository\ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY);
+		$slugs = $cache->load(\App\Repository\ArticleRepository::ALL_ARTICLE_PATHS_CACHE_KEY);
 
 		if ($slugs) {
 			$escapedSlugs = array_map(fn($s) => preg_quote($s, '#'), $slugs);
 			$pattern = implode('|', $escapedSlugs);
 		
-			$router->addRoute('<slug ' . $pattern . '>', [
+			$router->addRoute('<path ' . $pattern . '>', [
 				'presenter' => 'Article',
 				'action' => 'default'
 			]);
@@ -39,4 +39,5 @@ final class RouterFactory {
 
 		return $router;
 	}
+
 }

@@ -18,8 +18,8 @@ $storage = new FileStorage(__DIR__ . '/../temp/cache');
 $cache = new Cache($storage);
 $articleRepository = $container->getByType(ArticleRepository::class);
 
-if ($cache->load(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY) === null) {
-	$cache->save(ArticleRepository::ALL_ARTICLE_SLUGS_CACHE_KEY, $articleRepository->getAllSlugs(true), [Cache::Expire => '10 minutes']);
+if ($cache->load(ArticleRepository::ALL_ARTICLE_PATHS_CACHE_KEY) === null) {
+	$cache->save(ArticleRepository::ALL_ARTICLE_PATHS_CACHE_KEY, $articleRepository->getAllPaths(true), [Cache::Expire => '10 minutes']);
 }
 
 $application = $container->getByType(Nette\Application\Application::class);

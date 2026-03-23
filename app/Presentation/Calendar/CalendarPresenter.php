@@ -12,7 +12,7 @@ final class CalendarPresenter extends \App\Presentation\BasePresenter {
 
 	public function actionDefault(): void {
 		$this->seo->breadcrumbs = [
-			$this->homeString => $this->link('//Home:default'),
+			$this->config['ui_breadcrumbs_home_text'] ?: 'Home' => $this->link('//Home:default'),
 			'Kalendář' => $this->link('//Calendar:default'),
 		];
 	}
@@ -36,7 +36,7 @@ final class CalendarPresenter extends \App\Presentation\BasePresenter {
 			$this->calendarRepository->toggleBlockingDay($date);
 		};
 
-			return $c;
+		return $c;
 	}
 
 }

@@ -1,5 +1,10 @@
-articles - nesting
-articles - obnoveni historie
+articles - obnoveni historie / historie overit funkcnost az k aktualnimu stavu
+nseting clanku - generovani menu pro deti, ?upravit seo structured data?
+tvorba menu / menupresenter - jine tvoreni odkazu do articles i galerie
+nastaveni - enumy, osetrit nullable
 vkladani sablon dovnitr textu
 
 mazani menu - zakazat mazani s podpolozkami
+iterovani deti clanku a generovani dynamicky menus...
+
+sluzba consistency checker - menu check, index check, size check...

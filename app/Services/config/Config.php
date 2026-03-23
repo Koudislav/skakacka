@@ -18,7 +18,10 @@ class Config implements \ArrayAccess {
 		'spacing',
 		'padding',
 		'margin',
+		'ui_breadcrumbs_show_min_items',
 	];
+
+	public const ui_breadcrumbs_show_min_items = ['1' => 'Zobrazit již od jedné položky', '2' => 'Zobrazit až od dvou položek'];
 	public const CACHE_KEY = 'app_config';
 
 	public function __construct(
@@ -46,7 +49,7 @@ class Config implements \ArrayAccess {
 			}
 			// override from DB
 			$dbConfig = $this->processConfig($rawConfig);
-			
+
 			foreach ($dbConfig as $key => $value) {
 				$config[$key] = $value;
 			}
@@ -75,8 +78,8 @@ class Config implements \ArrayAccess {
 					$config[$key] = $item->value_string;
 					break;
 				case 'enum':
-					if (in_array($item->enum_options, self::SPECIAL_ENUMS, true)) {
-						$options = $this->resolveSpecials($item->enum_options);
+					if (in_array($item->enum_options ?: $item->key, self::SPECIAL_ENUMS, true)) {
+						$options = $this->resolveSpecials($item->enum_options ?: $item->key);
 					} else {
 						$options = isset($item->enum_options) ? explode(',', $item->enum_options) : [];
 					}
@@ -86,7 +89,7 @@ class Config implements \ArrayAccess {
 						$config[$key] = $item->value_string;
 					}
 					break;
-		
+
 				default:
 					break;
 			}
@@ -119,6 +122,7 @@ class Config implements \ArrayAccess {
 			'spacing' => array_keys(BootstrapHelper::getSpacingOptions()),
 			'padding' => array_keys(BootstrapHelper::getSpacingOptions('padding')),
 			'margin' => array_keys(BootstrapHelper::getSpacingOptions('margin')),
+			'ui_breadcrumbs_show_min_items' => array_map('strval', array_keys(self::ui_breadcrumbs_show_min_items)),
 			default => [],
 		};
 	}

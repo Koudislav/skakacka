@@ -29,8 +29,8 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	private const WWW_DIR = __DIR__ . '/../../../www';
 
-	public function actionDefault(string $slug): void {
-		$article = $this->articleRepository->getBySlug($slug);
+	public function actionDefault(string $path): void {
+		$article = $this->articleRepository->getByPath($path);;
 
 		if (!$article || !$article->is_published) {
 			$this->error('Článek nenalezen'); // 404
@@ -103,7 +103,7 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			$this->calendarRepository->toggleBlockingDay($date);
 		};
 
-			return $c;
+		return $c;
 	}
 
 	protected function overWriteSeo($article): void {
@@ -124,11 +124,57 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			$this->seo->ogDescription = $article->seo_description;
 		}
 
-		$this->seo->breadcrumbs = [
-			$this->homeString => $this->link('//Home:default'),
-			$article->title => $this->link('//Article:default', ['slug' => $article->slug]),
-		];
-		$this->template->seo = $this->seo;
+		$this->seo->breadcrumbs = $this->buildSeoBreadcrumbs($article->path, $article->id);
+
+		$this->template->breadcrumbs = $this->buildTemplateBreadcrumbs($article->path, $article->id);
+	}
+
+	private function buildTemplateBreadcrumbs(string $path, int $articleId): array {
+		$breadcrumbs = [];
+		if (!$this->config['ui_breadcrumbs_articles'])
+			return $breadcrumbs;
+
+		if ($this->config['ui_breadcrumbs_home']) {
+			$breadcrumbs[$this->config['ui_breadcrumbs_home_text'] ?: 'Home'] = $this->link('//Home:default');
+		}
+		$breadcrumbs += $this->buildBreadcrumbs($path, $articleId);
+		if (!$this->config['ui_breadcrumbs_show_current']) {
+			array_pop($breadcrumbs);
+		}
+
+		if (count($breadcrumbs) < (int) $this->config['ui_breadcrumbs_show_min_items']) {
+			return [];
+		}
+		return $breadcrumbs;
+	}
+
+	private function buildSeoBreadcrumbs(string $path, int $articleId): array {
+		$breadcrumbs = [$this->config['ui_breadcrumbs_home_text'] ?: 'Home' => $this->link('//Home:default')];
+		$breadcrumbs += $this->buildBreadcrumbs($path, $articleId);
+		return $breadcrumbs;
+	}
+
+	private function buildBreadcrumbs(string $path, int $articleId): array {
+		return $this->cache->load('breadcrumbs_' . $path, function (&$dependencies) use ($path, $articleId) {
+			$dependencies[$this->cache::Expire] = '1 day';
+			$dependencies[$this->cache::Tags] = ['article_' . $articleId, 'articleBreadcrumbs'];
+			$segments = explode('/', $path);
+
+			$breadcrumbs = [];
+			$currentPath = '';
+			foreach ($segments as $segment) {
+				$currentPath .= ($currentPath ? '/' : '') . $segment;
+
+				$article = $this->articleRepository->getByPath($currentPath);
+				if (!$article) {
+					continue; // bezpečnost
+				}
+				$breadcrumbs[$article->title] = $this->link('//Article:default', [
+					'path' => $currentPath
+				]);
+			}
+			return $breadcrumbs;
+		});
 	}
 
 }

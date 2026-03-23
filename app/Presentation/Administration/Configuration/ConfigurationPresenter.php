@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Presentation\Administration\Configuration;
 
+use App\Config\Config;
 use App\Forms\BootstrapFormFactory;
 use App\Repository\ConfigurationRepository;
 use App\Services\BootstrapHelper;
@@ -29,6 +30,7 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 		'template_bg_navbar' => 'enumColors',
 		'template_bg_content' => 'enumColors',
 		'template_p_content' => 'enumPadding',
+		'ui_breadcrumbs_show_min_items' => 'enumBreadcrumbsMinItems',
 	];
 
 	public function actionDefault(?string $category = null): void {
@@ -153,6 +155,9 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 				continue; // nemá oprávnění
 			}
 
+			if ($item->type === 'enum') {
+				$value = (string) $value;
+			}
 
 			if (str_starts_with($key, 'hex_pick_')) {
 				$less = true;
@@ -216,6 +221,10 @@ final class ConfigurationPresenter extends \App\Presentation\Administration\Base
 
 	public function enumMargin() {
 		return BootstrapHelper::getSpacingOptions('margin') ?? [];
+	}
+
+	public function enumBreadcrumbsMinItems(): array {
+		return Config::ui_breadcrumbs_show_min_items;
 	}
 
 }
