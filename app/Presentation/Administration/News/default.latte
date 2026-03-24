@@ -1,0 +1,33 @@
+{block content}
+
+<div class="row">
+	<div class="col-4">
+		<div class="list-group">
+			<a n:href="default, newsId: 0"
+				n:class="$currentNewsId === 0 ? active, 'list-group-item'">
+				+ Nová novinka
+			</a>
+
+			{foreach $items as $item}
+				<a n:href="default, newsId: $item->id"
+					n:class="$currentNewsId === $item->id ? active, 'list-group-item'">
+					{$item->title}
+				</a>
+			{/foreach}
+		</div>
+	</div>
+
+	<div class="col-8">
+		<h2>
+			{if $currentNewsId}
+				Úprava: {$newsName}
+			{else}
+				Nová novinka
+			{/if}
+		</h2>
+
+		{control newsForm}
+	</div>
+</div>
+
+{/block}

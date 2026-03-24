@@ -1,0 +1,33 @@
+<div class="news-list">
+	<div class="row">
+		{foreach $news as $item}
+			<div class="col-12">
+				<div class="card h-100">
+
+					{if $item['cover_image']}
+						<img src="{$item['cover_image']}" class="card-img-top" alt="{$item['title']}">
+					{/if}
+
+					<div class="card-body">
+						<h5 class="card-title">
+							<a href="{$item['link']}">
+								{$item['title']}
+							</a>
+						</h5>
+
+						{if $item['excerpt']}
+							<p class="card-text">
+								{$item['excerpt']}
+							</p>
+						{/if}
+					</div>
+
+					<div class="card-footer text-muted small">
+						{$item['published_at']|date:'j. n. Y'}
+					</div>
+
+				</div>
+			</div>
+		{/foreach}
+	</div>
+</div>

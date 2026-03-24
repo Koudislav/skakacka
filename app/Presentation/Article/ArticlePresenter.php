@@ -7,6 +7,7 @@ use App\Components\ContactFormControlFactory;
 use App\Repository\ArticleRepository;
 use App\Repository\CalendarRepository;
 use App\Repository\GalleryRepository;
+use App\Repository\NewsRepository;
 use App\Service\ReCaptchaService;
 use App\Service\SpecialCodesParser;
 
@@ -20,6 +21,9 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	/** @var GalleryRepository @inject */
 	public $galleryRepository;
+
+	/** @var NewsRepository @inject */
+	public NewsRepository $newsRepository;
 
 	/** @var ReCaptchaService @inject */
 	public $reCaptchaService;

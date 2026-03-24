@@ -50,6 +50,12 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 			],
 		],
 		[
+			'action' => 'News:default',
+			'icon' => 'bi bi-calendar2-week',
+			'title' => 'Novinky',
+			'onlyForLoggedIn' => true,
+		],
+		[
 			'action' => 'Articles:default',
 			'icon' => 'bi bi-file-earmark-text',
 			'title' => 'Články',
@@ -69,7 +75,7 @@ abstract class BaseAdministrationPresenter extends \App\Presentation\BasePresent
 		],
 		[
 			'action' => 'UploadManager:default',
-			'icon' => 'bi bi-images',
+			'icon' => 'bi bi-upload',
 			'title' => 'Upload',
 			'onlyForLoggedIn' => true,
 		],

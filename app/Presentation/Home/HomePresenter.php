@@ -6,6 +6,7 @@ namespace App\Presentation\Home;
 
 use App\Repository\ArticleRepository;
 use App\Repository\GalleryRepository;
+use App\Repository\NewsRepository;
 use App\Service\SpecialCodesParser;
 
 final class HomePresenter extends \App\Presentation\BasePresenter {
@@ -15,6 +16,9 @@ final class HomePresenter extends \App\Presentation\BasePresenter {
 
 	/** @var GalleryRepository @inject */
 	public $galleryRepository;
+
+	/** @var NewsRepository @inject */
+	public NewsRepository $newsRepository;
 
 	public function actionDefault(): void {
 		$indexArticles = $this->articleRepository->getIndexes();

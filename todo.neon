@@ -1,3 +1,4 @@
+novinky - breadcrumbs
 articles - obnoveni historie / historie overit funkcnost az k aktualnimu stavu
 nseting clanku - generovani menu pro deti, ?upravit seo structured data?
 tvorba menu / menupresenter - jine tvoreni odkazu do articles i galerie
@@ -8,3 +9,6 @@ mazani menu - zakazat mazani s podpolozkami
 iterovani deti clanku a generovani dynamicky menus...
 
 sluzba consistency checker - menu check, index check, size check...
+
+/vice urovni menu, napovi mi chat - https://chatgpt.com/c/69c240a8-5480-8325-8116-05a17d73b195
+novinky renderer shortcode - na vlastni sablonu, dovymyslet flow

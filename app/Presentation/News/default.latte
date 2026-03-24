@@ -1,0 +1,13 @@
+{block title}{$seo->getTitle()}{/block}
+{block content}
+<div n:class="$config['template_container_fluid'] ? container-fluid : container,
+	!empty($colorScheme['bg_content']) ? 'bg-' . $colorScheme['bg_content'] : '',
+	!empty($templateSpacing['p_content']) ? $templateSpacing['p_content'] : '',
+	content-container">
+	<h1>{$news->title}</h1>
+	<p class="text-muted">{$news->published_at|date:'j. n. Y'}</p>
+
+	<div class="news-content">
+		{$newsContent|noescape}
+	</div>
+</div>

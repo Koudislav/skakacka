@@ -23,6 +23,8 @@ class ArticleRepository {
 		'verifyemail',
 		'auth',
 		'unsubscribe',
+		'novinky',
+		'novinka',
 	];
 
 	public function __construct(

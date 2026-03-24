@@ -6,13 +6,15 @@ namespace App\Service;
 
 use Nette\Application\UI\Presenter;
 use Latte\Engine;
+use Tracy\Debugger;
 
 class SpecialCodesParser {
 	private array $allowedActions = [
-		'gallery::trapezoid' => 'trapezoid',
-		'gallery::preview' => 'renderGalleryBasicPreview',
-		'form::contact' => 'renderContactForm',
-		'calendar::basic' => 'renderCalendarBasic',
+		'gallery::trapezoid',
+		'gallery::preview',
+		'form::contact',
+		'calendar::basic',
+		'news::latest',
 	];
 
 	public function __construct(
@@ -23,7 +25,16 @@ class SpecialCodesParser {
 	 * Nahradí text komponentami
 	 */
 	public function parse(string $text): string {
-		return preg_replace_callback('/\[\[@([a-z0-9:_]+)((?:\|[a-z0-9_]+=[^|\]]*)*)\]\]/i', function ($matches) {
+		$placeholders = [];
+
+		// schovej <code> a <pre>
+		$text = preg_replace_callback('#<(code|pre)[^>]*>.*?</\1>#si', function ($m) use (&$placeholders) {
+			$key = '###CODE_BLOCK_' . count($placeholders) . '###';
+			$placeholders[$key] = $m[0];
+			return $key;
+		}, $text);
+
+		$text = preg_replace_callback('/\[\[@([a-z0-9:_]+)((?:\|[a-z0-9_]+=[^|\]]*)*)\]\]/i', function ($matches) {
 			$action = $matches[1];
 			$paramsString = $matches[2]; // |id=6|big=Zážitkový|small=Učení
 			$params = [];
@@ -43,30 +54,31 @@ class SpecialCodesParser {
 				}
 			}
 
-			if (!array_key_exists($action, $this->allowedActions)) {
+			if (!in_array($action, $this->allowedActions)) {
 				return $matches[0]; // ponech původní text
 			}
 
-			// Načti fotky z DB (repository/service)
-			switch ($this->allowedActions[$action] ?? null) {
-				case 'trapezoid':
-					return $this->renderTrapezoidGallery($params);
-				case 'renderGalleryBasicPreview':
-				case 'renderContactForm':
-				case 'renderCalendarBasic':
-					$fn = $this->allowedActions[$action];
-					return $this->$fn($params);
-				default:
-					return $matches[0]; // ponech původní text
+			try {
+				$fn = $this->resolveFunctionName($action);
+				return $this->$fn($params);
+			} catch (\Throwable $e) {
+				Debugger::log("Chyba při renderování komponenty pro akci '$action': " . $e->getMessage(), Debugger::ERROR);
+				return $matches[0]; // ponech původní text
 			}
 		}, $text);
+
+		return strtr($text, $placeholders);
 	}
 
-	public function renderTrapezoidGallery(array $params): string {
+	private function resolveFunctionName(string $action): string {
+		$parts = explode('::', $action, 2);
+		return 'render' . ucfirst($parts[0]) . ucfirst($parts[1]);
+	}
+
+	public function renderGalleryTrapezoid(array $params): string {
 		$id = (int)$params['id'];
 		$count = $params['count'] ?? 5;
 		$photos = $this->presenter->galleryRepository->findPicturesByGalleryId($id);
-
 		$latte = new Engine();
 
 		// Vytvoř komponentu a renderuj do stringu
@@ -86,11 +98,10 @@ class SpecialCodesParser {
 		return $html;
 	}
 
-	public function renderGalleryBasicPreview($params) {
+	public function renderGalleryPreview($params) {
 		$id = (int)$params['id'];
 		$count = $params['count'] ?? 5;
 		$photos = $this->presenter->galleryRepository->findPicturesByGalleryId($id);
-
 		$latte = new Engine();
 
 		// Vytvoř komponentu a renderuj do stringu
@@ -107,12 +118,40 @@ class SpecialCodesParser {
 		return $html;
 	}
 
-	public function renderContactForm(array $params): string {
+	public function renderFormContact(array $params): string {
 		return $this->presenter->renderContactFormSnippet();
 	}
 
 	public function renderCalendarBasic(array $params): string {
 		return $this->presenter->renderCalendarSnippet();
+	}
+
+	public function renderNewsLatest(array $params): string {
+		$count = !empty($params['count']) ? (int)$params['count'] : 3;
+		$excerptLength = (!empty($params['perexLength']) && is_numeric($params['perexLength'])) ? (int)$params['perexLength'] : 150;
+		$news = $this->presenter->newsRepository->getLatest($count);
+		$items = [];
+		foreach ($news as $new) {
+			$item = $new->toArray();
+			$item['link'] = $this->presenter->link('//News:default', ['slug' => $new->slug]);
+			if (empty($item['excerpt'])) {
+				$item['excerpt'] = strip_tags(html_entity_decode($item['content']));
+			}
+			if (mb_strlen($item['excerpt']) > $excerptLength + 5) {
+				$item['excerpt'] = mb_substr($item['excerpt'], 0, $excerptLength) . '...';
+			}
+			$items[] = $item;
+		}
+		if (!empty($params['template'])) {
+			
+		}
+		$latte = new Engine();
+		return $latte->renderToString(
+			__DIR__ . '/../Components/NewsControl/latest.latte',
+			[
+				'news' => $items,
+			]
+		);
 	}
 
 }

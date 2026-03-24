@@ -82,8 +82,9 @@
 	<!-- N1ED core
 	<script src="https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.n1ed.com/n1ed/tinymce/n1ed.min.css">
+	-->
+
 	<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-	 -->
 
 	{block scripts}
 	<script>
@@ -127,7 +128,9 @@
 				const iframeDoc = editor.getDoc();
 				if (iframeDoc && iframeDoc.documentElement) {
 					iframeDoc.documentElement.setAttribute('data-bs-theme', theme);
-					iframeDoc.body.classList.add(contentBg);
+					if (contentBg) {
+						iframeDoc.body.classList.add(contentBg);
+					}
 					iframeDoc.body.classList.add(contentContainer);
 				}
 			});
