@@ -1,0 +1,12 @@
+{block blockMenu}
+	{include 'menu/_articleMenuMain.latte'}
+{/block}
+
+
+{block content}
+
+{if $currentArticleId === 0}Nový článek{else}Úprava článku {$articleName}{/if}
+
+{include 'forms/_articleForm.latte' formName => 'layoutArticleForm'}
+
+{/block}

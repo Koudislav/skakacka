@@ -85,6 +85,9 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 				'parent_id' => $menuItem['db']->parent_id,
 				'galleryId' => $menuItem['processed']['galleryId'] ?? null,
 			]);
+			$form->addButton('delete', 'Smazat')
+				->setHtmlAttribute('class', 'btn btn-danger')
+				->setHtmlAttribute('onclick', 'if(confirm("Opravdu chcete smazat tuto položku menu?")) { document.location = "' . $this->link('delete!', ['menuId' => $menuId]) . '"; } return false;');
 		}
 
 		$form->addSubmit('submit', 'Uložit')
@@ -133,8 +136,8 @@ final class MenusPresenter extends \App\Presentation\Administration\BaseAdminist
 		$this->sendJson(['status' => 'ok']);
 	}
 
-	public function handleDelete(int $id): void {
-		$this->menuRepository->softDelete($id, $this->getUser()->getId());
+	public function handleDelete(int $menuId): void {
+		$this->menuRepository->softDelete($menuId, $this->getUser()->getId());
 		$this->cache->clean([$this->cache::Tags => self::MENU_CACHE_KEY]);
 		$this->flashMessage('Položka menu byla smazána.', 'success');
 		if ($this->isAjax()) {

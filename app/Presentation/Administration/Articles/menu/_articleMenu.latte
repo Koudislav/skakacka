@@ -1,6 +1,6 @@
 {foreach $items as $node}
 	<div class="article-node">
-		<a n:href="default, articleId: $node['article']->id"
+		<a href="{$node['link']}"
 			n:class="$currentArticleId === $node['article']->id ? active, 'list-group-item list-group-item-action py-1 pe-1'"
 			style="padding-left: {if $level == 0}0.5{else}{$level}{/if}rem !important;">
 			<i n:class="bi, $node['article']->is_published ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>

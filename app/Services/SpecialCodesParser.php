@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Repository\TemplateRepository;
 use Nette\Application\UI\Presenter;
 use Latte\Engine;
+use Latte\Loaders\StringLoader;
 use Tracy\Debugger;
 
 class SpecialCodesParser {
@@ -143,7 +145,11 @@ class SpecialCodesParser {
 			$items[] = $item;
 		}
 		if (!empty($params['template'])) {
-			
+			try {
+				return $this->newsLatestTemplate($items, $params);
+			} catch (\Throwable $e) {
+				Debugger::log("Chyba při renderování šablony pro news::latest: " . $e->getMessage(), Debugger::ERROR);
+			}
 		}
 		$latte = new Engine();
 		return $latte->renderToString(
@@ -152,6 +158,43 @@ class SpecialCodesParser {
 				'news' => $items,
 			]
 		);
+	}
+
+	public function newsLatestTemplate(array $items, array $params): string {
+		$template = $this->presenter->templateRepository->getTemplateById((int)$params['template'])->content;
+		$template = $this->holdersToVariables($template, ['content', 'coverImage']);
+		$latte = new Engine();
+		$latte->setLoader(new StringLoader());
+		$stringHtml = '';
+		foreach ($items as $item) {
+			$stringHtml .= $latte->renderToString($template, [
+				'coverImage' => $this->sanitizeImageUrl($item['cover_image']),
+				'title' => $item['title'],
+				'perex' => $item['excerpt'],
+				'content' => $item['content'],
+				'link' => $item['link'],
+				'publishedAt' => $item['published_at'] instanceof \DateTimeInterface ? $item['published_at']->format('d.m.Y H:i') : null,
+			]);
+		}
+		return $stringHtml;
+	}
+
+	public function holdersToVariables(string $template, array $noescaped = []): string {
+		return preg_replace_callback(TemplateRepository::VARIABLE_REGEX, function ($matches) use ($noescaped) {
+			$variableName = $matches[1];
+			return in_array($variableName, $noescaped) ? "{\${$variableName}|noescape}" : "{\${$variableName}}";
+		}, $template);
+	}
+
+	private function sanitizeImageUrl(?string $url): ?string {
+		$holder = '/assets/images/picture-not-found.webp';
+		if (!$url) return $holder;
+		$url = trim($url);
+		if (str_starts_with($url, '/')) return $url;
+		if (!filter_var($url, FILTER_VALIDATE_URL)) return $holder;
+		$scheme = parse_url($url, PHP_URL_SCHEME);
+		if (!in_array(strtolower($scheme), ['http', 'https'], true)) return $holder;
+		return $url;
 	}
 
 }

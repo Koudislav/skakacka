@@ -1,0 +1,9 @@
+{dump}
+<div class="list-group rounded shadow-sm">
+	<a n:href="default, articleId: 0"
+		n:class="$currentArticleId === 0 ? active, 'list-group-item list-group-item-action'">
+		<i class="bi bi-file-earmark-plus"></i> Nový článek
+	</a>
+
+	{include '_articleMenu.latte', items => $menus, level => 0}
+</div>

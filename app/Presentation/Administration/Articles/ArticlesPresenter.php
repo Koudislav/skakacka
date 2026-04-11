@@ -4,87 +4,47 @@ declare(strict_types=1);
 
 namespace App\Presentation\Administration\Articles;
 
-use App\Forms\BootstrapFormFactory;
+use App\Forms\Administration\Article\ArticleFormFactory;
 use Nette\Forms\Form;
 
 final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdministrationPresenter {
 
-	public const ARTICLE_TYPES = [
-		'article' => 'Běžný článek',
-		'news' => 'Novinka',
-		'index' => 'Úvodní stránka',
-	];
+	/** @var ArticleFormFactory @inject */
+	public ArticleFormFactory $articleFormFactory;
 
 	public function renderDefault(int $articleId = 0): void {
 		$this->template->currentArticleId = $articleId;
-		$data = $this->articleRepository->findAll();
-
-		$indexes = [];
-		$articles = [];
-
-		foreach ($data as $key => $article) {
-			if ($article->type === 'index') {
-				$indexes[$key] = $article;
-			} else {
-				$articles[$key] = $article;
-			}
-		}
-
-		$systemArticle = (bool) ($data[$articleId]->is_system ?? false);
-		$this->template->systemArticle = $systemArticle;
-		if ($systemArticle) {
-			$this->template->systemArticleDescription = $data[$articleId]->system_description;
-		}
-
-		$this->template->articleName = $data[$articleId]->title ?? null;
-		$this->template->menus = $this->articleRepository->getArticleTree();
-
+		$this->basicData($articleId);
 		$this->collapses($articleId);
 		$this->history($articleId);
 	}
 
+	public function renderCreateFromLayout(): void {
+		$this->template->currentArticleId = 0;
+		$this->basicData(0);
+		$this->template->templates = $this->templateRepository->findLayouts();
+	}
+
+	public function renderArticleFromLayout(int $articleId = 0, ?int $templateId = null): void {
+		$this->template->currentArticleId = $articleId;
+		if ($articleId === 0) {
+			if ($templateId === null) {
+				$this->error('Nebyl vybrán žádný článek ani šablona.', 404);
+			}
+		} else {
+			$article = $this->articleRepository->getArticleById($articleId);
+			if (!$article || !$article->template_id) {
+				$this->error('Nebyl vybrán žádný článek ani šablona.', 404);
+			}
+		}
+		$this->basicData($articleId);
+		$this->collapses($articleId);
+	}
+
 	public function createComponentArticleForm() {
-		$form = BootstrapFormFactory::create('oneLine');
 		$articleId = (int) $this->getParameter('articleId');
 
-		$form->addSelect('type', 'Typ článku:', self::ARTICLE_TYPES)
-			->setDefaultValue('article');
-
-		$form->addSelect('parent_id', 'Rodič:', $this->articleRepository->getArticleOptions($articleId))
-			->setPrompt('— žádný (Domů) —');
-
-		$form->addText('title', 'Nadpis:')
-			->setRequired('Zadejte nadpis článku.');
-
-		$form->addCheckbox('show_title', 'Nadpis ve stránce')
-			->setDefaultValue(false);
-
-		$form->addText('slug', 'Slug (jenom malá písmena, čísla, pomlčky):')
-			->addRule($form::Pattern, 'Zadejte platný slug (malá písmena, čísla, pomlčky).', '^[a-z0-9\-]+$');
-
-		$form->addText('seo_title', 'SEO titulek:')
-			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití nadpisu jako SEO titulku.');
-		
-		$form->addText('seo_description', 'SEO popis:')
-			->setHtmlAttribute('placeholder', 'Ponechte prázdné pro použití SEO description ze sekce NASTAVENÍ.');
-
-		$form->addText('og_image', 'og image:')
-			->setHtmlAttribute('placeholder', 'obrázek pro sociální sítě (relativní cesta od kořene webu, např. /upload/obrazek.jpg)');
-
-		$form->addTextArea('content', 'Obsah článku:')
-			->setHtmlAttribute('rows', 10)
-			->setHtmlAttribute('class', 'tiny-editor');
-
-		$form->addCheckbox('is_published', 'Publikováno')
-			->setDefaultValue(false);
-
-		$form->addButton('preview', 'Náhled')
-			->setHtmlAttribute('class', 'btn btn-sm btn-warning')
-			->setHtmlAttribute('data-preview-link', $this->link('//:Article:preview'))
-			->setHtmlAttribute('onclick', 'showPreview(this);');
-
-		$form->addSubmit('submit', 'Uložit')
-			->setHtmlAttribute('class', 'btn btn-sm btn-primary');
+		$form = $this->articleFormFactory->createArticleForm($this->articleRepository->getArticleOptions($articleId), $this->link('//:Article:preview'));
 
 		if ($articleId !== 0) {
 			$articleData = $this->articleRepository->getArticleById($articleId);
@@ -110,6 +70,62 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 		}
 
 		$form->onSuccess[] = [$this, 'articleFormSubmitted'];
+		return $form;
+	}
+
+	public function createComponentLayoutArticleForm() {
+		$articleId = (int) $this->getParameter('articleId');
+		if ($articleId !== 0) {
+			$article = $this->articleRepository->getArticleById($articleId);
+			if (!$article || !$article->template_id) {
+				$this->error('Article not found', 404);
+			}
+			$templateId = $article->template_id;
+		} else {
+			$templateId = (int) $this->getParameter('templateId');
+		}
+		$template = $this->templateRepository->getById($templateId);
+		if (!$template) {
+			$this->error('Template not found');
+		}
+		$placeholders = $template->placeholders_json ? json_decode($template->placeholders_json, true) : [];
+
+		if (!empty($article)) {
+			$templateDefaults = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json ?? null);
+		}
+		$form = $this->articleFormFactory->createLayoutArticleForm($this->articleRepository->getArticleOptions($articleId), $placeholders, $templateDefaults ?? null);
+
+		if (!empty($article)) {
+			// $templateDefaults = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json ?? null);
+			$form->setDefaults($article);
+			$form['templateData']->setDefaults($templateDefaults);
+		}
+		$form->onSuccess[] = function (Form $form, $values) use ($template, $articleId) {
+			$dataJson = $this->articleRepository->createTemplateJson($values->templateData);
+			$data =[
+				'type' => $values->type,
+				'title' => $values->title,
+				'slug' => $values->slug,
+				'seo_title' => $values->seo_title,
+				'seo_description' => $values->seo_description,
+				'og_image' => $values->og_image,
+				'is_published' => $values->is_published,
+				'parent_id' => $values->parent_id,
+				'show_title' => 0,
+
+				'content' => $template->content,
+				'template_id' => $template->id,
+				'template_version' => $template->version,
+				'template_data_json' => $dataJson,
+			];
+			if ($articleId) {
+				$this->articleRepository->updateArticleFromArray($articleId, $data, $this->user->getId());
+				$this->redirect('this');
+			} else {
+				$create = $this->articleRepository->createArticleFromArray($data, $this->user->getId());
+				$this->redirect('this', ['articleId' => $create['articleId']]);
+			}
+		};
 		return $form;
 	}
 
@@ -199,6 +215,41 @@ final class ArticlesPresenter extends \App\Presentation\Administration\BaseAdmin
 			$this->template->history = $history;
 			$this->template->historyDiffs = $diffs;
 		}
+	}
+
+	private function basicData(int $articleId): void {
+		$data = $this->articleRepository->findAll();
+		$indexes = [];
+		$articles = [];
+		foreach ($data as $key => $article) {
+			if ($article->type === 'index') {
+				$indexes[$key] = $article;
+			} else {
+				$articles[$key] = $article;
+			}
+		}
+		$systemArticle = (bool) ($data[$articleId]->is_system ?? false);
+		$this->template->systemArticle = $systemArticle;
+		if ($systemArticle) {
+			$this->template->systemArticleDescription = $data[$articleId]->system_description;
+		}
+		$this->template->articleName = $data[$articleId]->title ?? null;
+		$this->template->menus = $this->addMenuLinks($this->articleRepository->getArticleTree());
+	}
+
+	private function addMenuLinks(array $tree): array {
+		foreach ($tree as &$node) {
+			if (!empty($node['article']->template_id)) {
+				$node['link'] = $this->link('articleFromLayout', ['articleId' => $node['article']->id]);
+			} else {
+				$node['link'] = $this->link('default', ['articleId' => $node['article']->id]);
+			}
+			// children recursion
+			if (!empty($node['children'])) {
+				$node['children'] = $this->addMenuLinks($node['children']);
+			}
+		}
+		return $tree;
 	}
 
 }

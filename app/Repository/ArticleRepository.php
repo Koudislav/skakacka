@@ -8,12 +8,14 @@ use Caxy\HtmlDiff\HtmlDiff;
 use Nette\Database\Explorer;
 use Nette\Database\Table\ActiveRow;
 use Nette\Utils\Strings;
+use stdClass;
 
 class ArticleRepository {
 
 	public const ARTICLES_TABLE = 'articles';
 	public const ARTICLES_HISTORY_TABLE = 'articles_history';
 	public const ALL_ARTICLE_PATHS_CACHE_KEY = 'all_article_paths';
+	private const BASE_RETURN_MESSAGES = ['success' => true, 'messages' => [['success' => 'Článek byl úspěšně vytvořen.']]];
 
 	public const FORBIDEN_SLUGS = [
 		'administration',
@@ -95,14 +97,8 @@ class ArticleRepository {
 	}
 
 	public function createArticle(\stdClass $values, int $userId): array {
-		$return = ['success' => true, 'messages' => [['success' => 'Článek byl úspěšně vytvořen.']]];
-		$slug = $this->generateAvailableSlug(
-			!empty($values->slug)
-				? $values->slug
-				: Strings::webalize($values->title),
-			null,
-			$values->parent_id ?? null
-		);
+		$return = self::BASE_RETURN_MESSAGES;
+		$slug = $this->generateAvailableSlug(!empty($values->slug) ? $values->slug : Strings::webalize($values->title), null, $values->parent_id ?? null);
 		if ($slug !== strtolower($values->slug)) {
 			$return['messages'][] = ['info' => 'Poznámka: Zadaný slug již existoval, byl změněn na unikátní hodnotu.'];
 		}
@@ -131,6 +127,52 @@ class ArticleRepository {
 		return $return;
 	}
 
+	public function createArticleFromArray(array $data, int $userId): array {
+		$return = self::BASE_RETURN_MESSAGES;
+		$data['slug'] = $this->generateAvailableSlug(!empty($data['slug']) ? $data['slug'] : Strings::webalize($data['title']), null, $data['parent_id'] ?? null);
+		$data['path'] = $this->buildPath($data['slug'], $data['parent_id'] ?? null);
+		$data['created_by'] = $userId;
+		$newArticle = $this->db->table(self::ARTICLES_TABLE)->insert($data);
+		$return['articleId'] = $newArticle->id;
+		return $return;
+	}
+
+	public function updateArticleFromArray(int $articleId, array $data, int $userId): bool {
+		$article = $this->getArticleById($articleId);
+		if (!$article) {
+			return false;
+		}
+		if (isset($data['slug']) || isset($data['parent_id'])) {
+			$slug = $data['slug'] ?? $article->slug;
+			$parentId = $data['parent_id'] ?? null;
+			$data['slug'] = $this->generateAvailableSlug($slug, $articleId, $parentId);
+			$data['path'] = $this->buildPath($data['slug'], $parentId);
+		}
+		$data['updated_at'] = new \DateTime();
+		$data['updated_by'] = $userId;
+		return (bool)$article->update($data);
+	}
+
+	public function createTemplateJson(array|stdClass $data): string {
+		$input = (array) $data;
+		$output = [];
+		foreach ($input as $key => $value) {
+			if (str_starts_with($key, 'repeater_')) {
+				$newValues = [];
+				$newKey = str_replace('repeater_', '', $key);
+				foreach ($value as $item) {
+					if (!empty($item['value'])) {
+						$newValues[] = $item;
+					}
+				}
+				$output[$newKey] = $newValues;
+			} else {
+				$output[$key] = $value;
+			}
+		}
+		return json_encode($output);
+	}
+
 	public function generateAvailableSlug(string $slug, ?int $excludeArticleId = null, ?int $parentId = null): string {
 		$baseSlug = $slug;
 		$i = 0;
@@ -154,13 +196,6 @@ class ArticleRepository {
 		}
 	}
 
-	// public function getBySlug(string $slug): ?ActiveRow {
-	// 	return $this->db->table(self::ARTICLES_TABLE)
-	// 		->where('deleted_at', null)
-	// 		->where('slug', $slug)
-	// 		->fetch() ?: null;
-	// }
-
 	public function getAllPaths(bool $onlyPublished = true): array {
 		$slugs = [];
 		$query = $this->db->table(self::ARTICLES_TABLE);
@@ -173,18 +208,6 @@ class ArticleRepository {
 		}
 		return $slugs;
 	}
-
-	// public function getArticleListForSelect(): array {
-	// 	$articles = $this->db->table(self::ARTICLES_TABLE)
-	// 		->where('deleted_at', null)
-	// 		->order('title ASC')
-	// 		->fetchAll();
-	// 	$result = [];
-	// 	foreach ($articles as $article) {
-	// 		$result[$article->slug] = ($article->is_published != 1 ? 'NEPUBLIKOVANO! ' : '') . $article->title . ' /// ' . $article->slug;
-	// 	}
-	// 	return $result;
-	// }
 
 	public function getIndexes(bool $onlyPublished = true) {
 		$query = $this->db->table(self::ARTICLES_TABLE)
@@ -278,7 +301,7 @@ class ArticleRepository {
 				continue;
 			}
 			// depth podle path
-			$depth = substr_count($row->path, '/');
+			$depth = substr_count(($row->path ?? ''), '/');
 			// odsazení
 			$prefix = str_repeat('— ', $depth);
 			$options[$row->{$params['returnKey']}] = $prefix . $row->title . ' (' . $row->slug . ')';

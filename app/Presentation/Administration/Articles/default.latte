@@ -1,21 +1,20 @@
 {block blockMenu}
-<div class="list-group rounded shadow-sm">
-	<a n:href="default, articleId: 0"
-		n:class="$currentArticleId === 0 ? active, 'list-group-item list-group-item-action'">
-		<i class="bi bi-file-earmark-plus"></i> Nový článek
-	</a>
-
-	{include '_articleMenu.latte', items => $menus, level => 0}
-
-</div>
+{include 'menu/_articleMenuMain.latte'}
 {/block}
 
 {block content}
-	<h1 class="h3" n:block=title>
-		Správa článků - {if $currentArticleId === 0}Nový článek{else}Úprava článku {$articleName}{/if}
-	</h1>
+	<div class="d-flex justify-content-between align-items-sm-center flex-column flex-sm-row">
+		<h1 class="h3" n:block=title>
+			Správa článků - {if $currentArticleId === 0}Nový článek{else}Úprava článku {$articleName}{/if}
+		</h1>
+		{if $currentArticleId === 0}
+			<a n:href="createFromLayout" class="text-decoration-none position-relative">
+				<i class="bi bi-layout-text-sidebar-reverse"></i>Vytvořit z layout šablony <span class="new-badge bg-warning text-danger"></span>
+			</a>
+		{/if}
+	</div>
 	<hr>
-	{include '_articleForm.latte'}
+	{include 'forms/_articleForm.latte' formName => 'articleForm'}
 {/block}
 
 {block scripts}

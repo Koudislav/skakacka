@@ -12,7 +12,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 administration">
 	{snippet flashes}
 		<div class="flashes">
 			<div n:foreach="$flashes as $flash" n:class="flash, $flash->type, alert, 'alert-' . $flash->type, 'alert-dismissible fade show'" role="alert">
@@ -95,6 +95,7 @@
 	tinymce.init({
 		selector: '.tiny-editor',
 		relative_urls: false,
+		convert_urls: false,
 		extended_valid_elements: 'i[class]',
 		paste_data_images: false,
 		automatic_uploads: false,
@@ -177,6 +178,19 @@
 
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+	const fadeInRightEls = document.querySelectorAll('.fade-in-right, .fade-in-left');
+		const fadeinObserver = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) {
+				entry.target.classList.add('visible');
+				}
+			});
+		}, {
+			threshold: 0.2 // spustí se když je 20 % prvku viditelné
+		});
+
+		fadeInRightEls.forEach(el => fadeinObserver.observe(el));
 	</script>
 	{/block}
 </body>

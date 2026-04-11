@@ -1,0 +1,13 @@
+<div class="list-group rounded shadow-sm">
+	<a n:href="default, templateId: 0"
+			n:class="$currentTemplateId === 0 ? active, 'list-group-item list-group-item-action'">
+		<i class="bi bi-file-earmark-plus"></i> Nová šablona
+	</a>
+
+	{foreach $menus as $menuItem}
+		<a n:href="default, templateId: $menuItem->id"
+				n:class="$currentTemplateId === $menuItem->id ? active, 'list-group-item list-group-item-action'">
+			{$menuItem->id}. {$menuItem->name}
+		</a>
+	{/foreach}
+</div>

@@ -28,11 +28,8 @@
 						<i n:class="bi, $m['item']->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
 						{$m['item']->label}
 					</a>
-					<div class="d-flex gap-1">
-						{include '_deleteButton.latte', deleteMenuId => $m['item']->id}
-						<div class="btn btn-sm btn-secondary parent-handle sorter-handle" style="cursor:grab;">
-							<i class="bi bi-arrows-move"></i>
-						</div>
+					<div class="btn btn-sm btn-secondary parent-handle sorter-handle" style="cursor:grab;">
+						<i class="bi bi-arrows-move"></i>
 					</div>
 				</div>
 
@@ -45,11 +42,8 @@
 									<i n:class="bi, $child->is_active ? 'bi-eye text-success' : 'bi-eye-slash text-danger'"></i>
 									{$child->label}
 								</a>
-								<div class="d-flex gap-1">
-									{include '_deleteButton.latte', deleteMenuId => $child->id}
-									<div class="btn btn-sm btn-secondary child-handle sorter-handle" style="cursor:grab;">
-										<i class="bi bi-arrows-move"></i>
-									</div>
+								<div class="btn btn-sm btn-secondary child-handle sorter-handle" style="cursor:grab;">
+									<i class="bi bi-arrows-move"></i>
 								</div>
 							</div>
 						</div>

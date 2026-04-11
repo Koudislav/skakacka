@@ -8,8 +8,11 @@ use App\Repository\ArticleRepository;
 use App\Repository\CalendarRepository;
 use App\Repository\GalleryRepository;
 use App\Repository\NewsRepository;
+use App\Repository\TemplateRepository;
+use App\Service\LayoutTemplatesService;
 use App\Service\ReCaptchaService;
 use App\Service\SpecialCodesParser;
+use Tracy\Debugger;
 
 final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
@@ -24,6 +27,9 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 
 	/** @var NewsRepository @inject */
 	public NewsRepository $newsRepository;
+
+	/** @var TemplateRepository @inject */
+	public TemplateRepository $templateRepository;
 
 	/** @var ReCaptchaService @inject */
 	public $reCaptchaService;
@@ -40,8 +46,14 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			$this->error('Článek nenalezen'); // 404
 		}
 
+		if ($article->template_id) {
+			$content = $this->makeTemplateContent($article);
+		} else {
+			$content = $article->content;
+		}
+
 		$parser = new SpecialCodesParser($this);
-		$articleContent = $parser->parse($article->content);
+		$articleContent = $parser->parse($content);
 
 		$this->template->articleContent = $articleContent;
 		$this->template->article = $article;
@@ -180,6 +192,40 @@ final class ArticlePresenter extends \App\Presentation\BasePresenter {
 			}
 			return $breadcrumbs;
 		});
+	}
+
+	public function makeTemplateContent($article) {
+		try {
+			$template = $this->templateRepository->getTemplateById((int)$article->template_id);
+			if ($template) {
+				$placeholders = json_decode($template->placeholders_json, true) ?: [];
+				$data = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json);
+				$content = LayoutTemplatesService::renderLayout($template->content, $placeholders, $data);
+			} else {
+				throw new \Exception("Template with ID {$article->template_id} not found.");
+			}
+		} catch (\Exception $e) {
+			Debugger::log("Chyba při zpracování šablony pro článek ID {$article->id}: " . $e->getMessage(), 'error');
+			try {
+				$template = $this->templateRepository->getTemplateHistory((int)$article->template_id, (int)$article->template_version);
+				if ($template) {
+					$placeholders = json_decode($template->placeholders_json, true) ?: [];
+					$data = $this->templateRepository->resolveDataDefaults($placeholders, $article->template_data_json);
+					$content = LayoutTemplatesService::renderLayout($template->content, $placeholders, $data);
+				} else {
+					throw new \Exception("Historical template with ID {$article->template_id} and version {$article->template_version} not found.");
+				}
+			} catch (\Exception $e) {
+				Debugger::log("Chyba při zpracování historické šablony pro článek ID {$article->id}: " . $e->getMessage(), 'error');
+				try {
+					$content = LayoutTemplatesService::renderLayout($article->content, $placeholders, $data);
+				} catch (\Exception $e) {
+					Debugger::log("Chyba při zpracování původního obsahu jako šablony pro článek ID {$article->id}: " . $e->getMessage(), 'error');
+					$content = $article->content; // fallback na původní obsah
+				}
+			}
+		}
+		return $content;
 	}
 
 }

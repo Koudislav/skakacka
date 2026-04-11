@@ -72,6 +72,18 @@
 					});
 				});
 			};
+			const fadeInRightEls = document.querySelectorAll('.fade-in-right, .fade-in-left');
+			const fadeinObserver = new IntersectionObserver((entries) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+					entry.target.classList.add('visible');
+					}
+				});
+			}, {
+				threshold: 0.2 // spustí se když je 20 % prvku viditelné
+			});
+
+			fadeInRightEls.forEach(el => fadeinObserver.observe(el));
 		});
 
 		{if $ga4Id ?? null}
@@ -91,6 +103,8 @@
 				});
 			};
 		{/if}
+
+		document.getElementById("year").innerHTML = new Date().getFullYear();
 
 	</script>
 	{/block}

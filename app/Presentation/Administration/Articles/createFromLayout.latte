@@ -1,0 +1,24 @@
+{block blockMenu}
+	{include 'menu/_articleMenuMain.latte'}
+{/block}
+
+
+{block content}
+
+<h1>Vytvořit článek z layoutu</h1>
+
+{foreach $templates as $template}
+	<div class="card mb-3">
+		<div class="card-body d-flex justify-content-between align-items-center">
+			<div>
+				<h5 class="card-title mb-0">{$template->name}</h5>
+				<p class="card-text"><small class="text-muted">{$template->description}</small></p>
+			</div>
+			<a n:href="articleFromLayout, articleId: 0, templateId: $template->id" class="btn btn-primary">
+				Vytvořit z této šablony
+			</a>
+		</div>
+	</div>
+{/foreach}
+
+{/block}
